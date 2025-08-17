@@ -1,0 +1,8 @@
+
+import { MyApplications } from './pages/admin/user/MyApplications';
+
+// ... (existing imports and code)
+
+<Route path="/user/applications" element={<MyApplications />} />
+
+// ... (rest of your routing code)
