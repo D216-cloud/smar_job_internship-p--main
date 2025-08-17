@@ -12,7 +12,9 @@ function getDeepseekConfig(customApiKey = null) {
       model: process.env.DEEPSEEK_MODEL || 'deepseek/deepseek-r1-0528:free',
       headers: {
         Authorization: `Bearer ${key}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://localhost:5000',
+        'X-Title': 'Job Matching App'
       }
     };
   }

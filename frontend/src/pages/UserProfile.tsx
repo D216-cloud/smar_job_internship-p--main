@@ -31,6 +31,7 @@ import {
 import { toast } from '@/hooks/use-toast';
 import axios from 'axios';
 import ResumeUpload from '@/components/ResumeUpload';
+import ProfileResume from '../components/ProfileResume';
 
 interface UserProfile {
   _id: string;
@@ -507,6 +508,7 @@ const UserProfile = () => {
           </CardHeader>
           <CardContent>
             <ResumeUpload currentResumeUrl={profileData.resume || undefined} />
+            <ProfileResume />
           </CardContent>
         </Card>
 
@@ -543,4 +545,4 @@ const UserProfile = () => {
   );
 };
 
-export default UserProfile; 
+export default UserProfile;

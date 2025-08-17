@@ -42,7 +42,9 @@ if (!fs.existsSync('uploads')) {
 
 // Routes
 const resumeUploadRoutes = require('./routes/resumeUpload');
+const uploadResumeRoute = require('./routes/uploadResume');
 app.use('/api/resume', resumeUploadRoutes);
+app.use('/api', uploadResumeRoute);
 
 // Use routes
 app.use('/api/resume', resumeAnalysisRoutes);

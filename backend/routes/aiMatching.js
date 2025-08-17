@@ -6,8 +6,10 @@ const Job = require('../models/job');
 const { generateJSON, getDeepseekConfig } = require('../utils/llmClient');
 const { localFallbackScore } = require('../utils/localScorer');
 const cloudinary = require('cloudinary').v2;
-const pdfParse = require('pdf-parse');
+const pdfjsLib = require('pdfjs-dist');
 const axios = require('axios');
+const dotenv = require('dotenv');
+dotenv.config();
 const authMiddleware = require('../middleware/auth');
 
 // Configure Cloudinary
@@ -29,72 +31,124 @@ const asyncHandler = (fn) => (req, res, next) => {
 const pdfTextCache = new Map(); // key: url -> { text, expires }
 const matchCache = new Map();   // key: `${userId}:${jobId}` -> { match, expires }
 
-// Helper function to extract text from PDF (with caching)
-async function extractTextFromPDF(pdfUrl) {
-  try {
-    if (!pdfUrl) throw new Error('No PDF URL provided');
-    console.log('📄 Fetching PDF from:', pdfUrl);
 
-    const cached = pdfTextCache.get(pdfUrl);
-    if (cached && cached.expires > Date.now()) {
-      console.log('⚡ Using cached PDF text');
-      return cached.text;
-    }
-    
-    // Check if this is a Cloudinary URL that might need signing
-    let finalUrl = pdfUrl;
-    if (pdfUrl.includes('cloudinary.com') && pdfUrl.includes('/raw/upload/')) {
+// Improved PDF extraction using pdfjs-dist and robust Cloudinary signed URL logic
+async function extractTextFromPDF(cloudinaryUrl) {
+  try {
+    console.log('📄 Extracting resume text from:', cloudinaryUrl);
+    let pdfUrl = cloudinaryUrl;
+    // Check if the URL already contains a signature (s--)
+    if (!cloudinaryUrl.includes('/s--')) {
       try {
-        // Extract the public ID correctly, including folders, and remove version and extension
-        // Example: .../upload/v1755350924/resumes/resume-1755350921482-57612025_lnuh9u.pdf
-        const uploadIdx = pdfUrl.indexOf('/upload/');
-        let publicIdWithVersion = pdfUrl.substring(uploadIdx + 8); // after '/upload/'
-        // Remove leading version if present (e.g., v1234567890/)
-        publicIdWithVersion = publicIdWithVersion.replace(/^v\d+\//, '');
-        // Remove extension
-        const dotIdx = publicIdWithVersion.lastIndexOf('.');
-        const publicId = dotIdx !== -1 ? publicIdWithVersion.substring(0, dotIdx) : publicIdWithVersion;
-        console.log('🔑 Generating signed URL for public_id:', publicId);
-        const signedUrl = cloudinary.url(publicId, {
-          resource_type: 'raw',
-          sign_url: true,
-          type: 'upload',
-          format: 'pdf'
-        });
-        finalUrl = signedUrl;
-        console.log('✅ Using signed URL for PDF access:', finalUrl);
-      } catch (signError) {
-        console.warn('⚠️ Failed to generate signed URL, trying original:', signError.message);
-        // Continue with original URL
-      }
-    }
-    
-    let response;
-    try {
-      response = await axios.get(finalUrl, { 
-        responseType: 'arraybuffer',
-        timeout: 15000,
-        headers: {
-          'User-Agent': 'SmartHire-AI-Matcher/1.0'
+        // Try accessing the public URL first
+        const testResponse = await axios.head(cloudinaryUrl);
+        if (testResponse.status === 200) {
+          console.log('✅ Using public URL directly');
+          pdfUrl = cloudinaryUrl;
         }
-      });
-    } catch (err) {
-      if (err.response && err.response.status === 404) {
-        throw new Error('Resume file not found (404). Please re-upload your resume.');
+      } catch (error) {
+        if (error.response && error.response.status === 401) {
+          console.log('🔑 Resource requires authentication, generating proper signed URL');
+          // Extract public ID from the URL
+          const publicIdMatch = cloudinaryUrl.match(/upload\/v\d+\/(.+?)\.pdf$/);
+          const publicId = publicIdMatch ? publicIdMatch[1] : null;
+          if (!publicId) {
+            throw new Error('Could not extract public ID from Cloudinary URL');
+          }
+          // Generate a properly signed URL using Cloudinary SDK
+          pdfUrl = cloudinary.url(publicId, {
+            resource_type: 'raw',
+            version: '1', // This is tricky - we need the correct version
+            sign_url: true
+          });
+          console.log('✅ Using properly signed URL:', pdfUrl);
+        } else {
+          throw error;
+        }
       }
-      throw err;
     }
-    if (response.status !== 200) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    // Fetch the PDF
+    console.log('📄 Fetching PDF from:', pdfUrl);
+    const response = await axios.get(pdfUrl, {
+      responseType: 'arraybuffer',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+    // Process the PDF
+    const pdfDoc = await pdfjsLib.getDocument({
+      data: new Uint8Array(response.data)
+    }).promise;
+    let text = '';
+    for (let i = 1; i <= pdfDoc.numPages; i++) {
+      const page = await pdfDoc.getPage(i);
+      const textContent = await page.getTextContent();
+      text += textContent.items.map(item => item.str).join(' ') + '\n';
     }
-    const data = await pdfParse(response.data);
-    console.log('✅ PDF text extracted successfully, length:', data.text.length);
-    // cache for 3 minutes
-    pdfTextCache.set(pdfUrl, { text: data.text, expires: Date.now() + 3 * 60 * 1000 });
-    return data.text;
+    console.log('✅ Successfully extracted text from PDF');
+    return text;
+  } catch (error) {
+    console.error('❌ Error extracting text from PDF:', error.message);
+    if (error.response) {
+      console.error('Server responded with:', error.response.status, error.response.data);
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+    }
+    throw new Error(`Failed to extract PDF text: ${error.message}`);
+  }
+}
+
+// Alternative: Use Cloudinary's direct download URL
+async function extractTextFromPDFUsingDirectUrl(publicId) {
+  try {
+    console.log('📄 Extracting text using direct Cloudinary URL for public ID:', publicId);
+    const pdfUrl = cloudinary.url(publicId, {
+      resource_type: 'raw',
+      type: 'upload',
+      format: 'pdf',
+      sign_url: true,
+      secure: true
+    });
+    console.log('✅ Using Cloudinary SDK generated URL:', pdfUrl);
+    const response = await axios.get(pdfUrl, {
+      responseType: 'arraybuffer',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+    const pdfDoc = await pdfjsLib.getDocument({
+      data: new Uint8Array(response.data)
+    }).promise;
+    let text = '';
+    for (let i = 1; i <= pdfDoc.numPages; i++) {
+      const page = await pdfDoc.getPage(i);
+      const textContent = await page.getTextContent();
+      text += textContent.items.map(item => item.str).join(' ') + '\n';
+    }
+    console.log('✅ Successfully extracted text from PDF');
+    return text;
   } catch (error) {
     console.error('❌ Error extracting text from PDF:', error.message);
     throw new Error(`Failed to extract PDF text: ${error.message}`);
+  }
+}
+
+// Update your extractResumeText function to use the improved method
+async function extractResumeText(cloudinaryUrl) {
+  try {
+    console.log('🔍 Starting resume text extraction process...');
+    const publicIdMatch = cloudinaryUrl.match(/upload\/v\d+\/(.+?)\.pdf$/);
+    const publicId = publicIdMatch ? publicIdMatch[1] : null;
+    if (publicId) {
+      console.log(`🆔 Extracted public ID: ${publicId}`);
+      return await extractTextFromPDFUsingDirectUrl(publicId);
+    } else {
+      console.log('🆔 Could not extract public ID, falling back to direct URL method');
+      return await extractTextFromPDF(cloudinaryUrl);
+    }
+  } catch (error) {
+    console.error('❌ Resume extraction failed:', error);
+    throw error;
   }
 }
 
@@ -111,19 +165,7 @@ async function extractTextFromDOCX(docxUrl) {
 }
 
 // Helper function to extract text from resume file
-async function extractResumeText(fileUrl) {
-  if (!fileUrl) return '';
-  
-  const fileExtension = fileUrl.split('.').pop().toLowerCase();
-  
-  if (fileExtension === 'pdf') {
-    return await extractTextFromPDF(fileUrl);
-  } else if (fileExtension === 'docx' || fileExtension === 'doc') {
-    return await extractTextFromDOCX(fileUrl);
-  } else {
-    return 'Unsupported file format. Please upload PDF or DOCX.';
-  }
-}
+// (No longer needed, replaced by improved extractResumeText above)
 
 // AI Matching endpoint
 router.post('/match', authMiddleware, async (req, res) => {

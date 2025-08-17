@@ -109,71 +109,65 @@ const AIResumeMatching: React.FC<AIResumeMatchingProps> = ({
     return <AlertTriangle className="w-6 h-6 text-red-500" />;
   };
 
+
+  // Polling logic to get AI result if fallback is returned
   const analyzeMatch = useCallback(async () => {
     setLoading(true);
     setError(null);
+    let attempts = 0;
+    const maxAttempts = 6; // e.g. poll for up to 12 seconds
+    let lastSource = null;
     try {
       const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('Please log in to analyze your resume match');
       }
-
-      // 1. Get the user's resume file URL (simulate or fetch from profile API if needed)
-      // For demo, assume resumeUrl is available (replace with actual logic as needed)
-      const resumeUrl = null;
-      // TODO: fetch resumeUrl from user profile if not passed as prop
-      // If you have resumeUrl as a prop or from context, use it here
-
-      const resumeText = '';
-      // PDF extraction is disabled because extractPdfText module is missing.
-      // If you implement extractPdfText, restore the code below.
-      // if (resumeUrl) {
-      //   try {
-      //     resumeText = await extractPdfText(resumeUrl);
-      //   } catch (e) {
-      //     console.error('Failed to extract PDF text:', e);
-      //     resumeText = '';
-      //   }
-      // }
-
-      const response = await fetch('/api/ai-matching/match', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          userId,
-          jobId,
-          fastFirst: true,
-          resumeText // send extracted text if available
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 403) {
-          throw new Error('You can only analyze your own resume');
-        } else if (response.status === 503) {
-          throw new Error('AI service temporarily unavailable. Please try again later.');
-        } else if (response.status === 502) {
-          throw new Error('Network error. Please check your connection and try again.');
-        } else if (data.error && data.error.includes('deepseek-unauthorized')) {
-          throw new Error('AI service authorization failed. Please check your DeepSeek/OpenRouter API key in the backend .env file.');
+      const fetchResult = async () => {
+        const response = await fetch('/api/ai-matching/match', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId,
+            jobId,
+            fastFirst: true,
+            resumeText: ''
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          if (response.status === 403) {
+            throw new Error('You can only analyze your own resume');
+          } else if (response.status === 503) {
+            throw new Error('AI service temporarily unavailable. Please try again later.');
+          } else if (response.status === 502) {
+            throw new Error('Network error. Please check your connection and try again.');
+          } else if (data.error && data.error.includes('deepseek-unauthorized')) {
+            throw new Error('AI service authorization failed. Please check your DeepSeek/OpenRouter API key in the backend .env file.');
+          }
+          throw new Error(data.error || `Server error (${response.status})`);
         }
-        throw new Error(data.error || `Server error (${response.status})`);
+        if (!data.match) {
+          throw new Error('Invalid response from AI service');
+        }
+        return data;
+      };
+      let data = await fetchResult();
+      lastSource = data.source;
+      // If fallback, poll for AI result
+      while (data.source === 'fallback' && attempts < maxAttempts) {
+        await new Promise(res => setTimeout(res, 2000));
+        data = await fetchResult();
+        lastSource = data.source;
+        attempts++;
       }
-
-      if (!data.match) {
-        throw new Error('Invalid response from AI service');
-      }
-
       setMatchData(data.match);
       setSource(data.source);
       toast({
         title: "Analysis Complete",
-        description: `Your fit score: ${data.match.fitScore}%`,
+        description: `Your fit score: ${data.match.fitScore}`,
         variant: "default",
       });
     } catch (err) {
@@ -354,22 +348,10 @@ const AIResumeMatching: React.FC<AIResumeMatchingProps> = ({
                   )}
                   {/* Fit Score Section */}
                   <div className="text-center bg-white/90 rounded-2xl p-8 shadow-lg backdrop-blur-sm relative overflow-hidden">
-                    <motion.div
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.5, type: "spring" }}
-                      className="flex items-center justify-center space-x-3 mb-4"
-                    >
-                      {getScoreIcon(matchData.fitScore)}
-                      <h3 className="text-2xl font-semibold text-gray-900">Resume Fit Score</h3>
-                    </motion.div>
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="mb-4">
-                      <ScoreGauge score={matchData.fitScore} />
-                    </motion.div>
-                    <Badge className={`text-sm font-semibold px-4 py-2 ${getScoreBadgeColor(matchData.fitScore)} rounded-xl transition-all duration-300 shadow-sm`}>
-                      {matchData.fitScore >= 80 ? 'Excellent Match' : 
-                       matchData.fitScore >= 60 ? 'Good Match' : 'Needs Improvement'}
-                    </Badge>
+                    <div className="flex flex-col items-center justify-center mb-4">
+                      <div style={{ fontSize: '2.5rem', fontWeight: 700, color: '#222' }}>{matchData.fitScore}</div>
+                      <div style={{ fontSize: '1rem', color: '#888' }}>Raw Fit Score (from AI/terminal)</div>
+                    </div>
                   </div>
                   <Separator className="bg-gray-200/50" />
                   {/* Detailed Comparison Section */}
@@ -491,12 +473,13 @@ const AIResumeMatching: React.FC<AIResumeMatchingProps> = ({
                       disabled={loading}
                       className="flex-1 h-12 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white transition-all duration-300 text-sm font-semibold shadow-md hover:shadow-lg"
                     >
-                      {loading ? (
-                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                      ) : (
-                        <Sparkles className="w-5 h-5 mr-2" />
+                      {loading && (
+                        <div className="flex flex-col items-center justify-center min-h-[300px]">
+                          <Loader2 className="w-10 h-10 animate-spin text-blue-500 mb-4" />
+                          <span className="text-lg font-semibold text-blue-700">Extracting resume text...</span>
+                          <span className="text-sm text-gray-500 mt-2">Please wait while we analyze your resume and job match.</span>
+                        </div>
                       )}
-                      Re-analyze Resume
                     </Button>
                   </motion.div>
                 </motion.div>
