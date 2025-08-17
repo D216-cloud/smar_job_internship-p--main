@@ -128,7 +128,7 @@ async function extractResumeText(fileUrl) {
 // AI Matching endpoint
 router.post('/match', authMiddleware, async (req, res) => {
   try {
-  const { userId, jobId, fastFirst } = req.body || {};
+  const { userId, jobId, fastFirst, resumeText: resumeTextFromClient } = req.body || {};
 
     if (!userId || !jobId) {
       return res.status(400).json({ 
@@ -194,8 +194,12 @@ router.post('/match', authMiddleware, async (req, res) => {
     });
 
       // Extract resume text
-  let resumeText = "";
-      if (userProfile.resume && userProfile.resume.fileUrl) {
+      let resumeText = "";
+      if (resumeTextFromClient && typeof resumeTextFromClient === 'string' && resumeTextFromClient.length > 20) {
+        // Use text extracted on the frontend if provided and long enough
+        resumeText = resumeTextFromClient;
+        console.log('⚡ Using resume text provided by client, length:', resumeText.length);
+      } else if (userProfile.resume && userProfile.resume.fileUrl) {
         try {
           console.log('📄 Extracting resume text from:', userProfile.resume.fileUrl);
           resumeText = await extractResumeText(userProfile.resume.fileUrl);

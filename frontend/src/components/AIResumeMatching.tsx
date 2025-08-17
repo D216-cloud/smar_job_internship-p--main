@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+// import extractPdfText from '../utils/extractPdfText';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -111,23 +112,41 @@ const AIResumeMatching: React.FC<AIResumeMatchingProps> = ({
   const analyzeMatch = useCallback(async () => {
     setLoading(true);
     setError(null);
-
     try {
       const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('Please log in to analyze your resume match');
       }
 
-    const response = await fetch('/api/ai-matching/match', {
+      // 1. Get the user's resume file URL (simulate or fetch from profile API if needed)
+      // For demo, assume resumeUrl is available (replace with actual logic as needed)
+      const resumeUrl = null;
+      // TODO: fetch resumeUrl from user profile if not passed as prop
+      // If you have resumeUrl as a prop or from context, use it here
+
+      const resumeText = '';
+      // PDF extraction is disabled because extractPdfText module is missing.
+      // If you implement extractPdfText, restore the code below.
+      // if (resumeUrl) {
+      //   try {
+      //     resumeText = await extractPdfText(resumeUrl);
+      //   } catch (e) {
+      //     console.error('Failed to extract PDF text:', e);
+      //     resumeText = '';
+      //   }
+      // }
+
+      const response = await fetch('/api/ai-matching/match', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-      userId,
-      jobId,
-      fastFirst: true
+          userId,
+          jobId,
+          fastFirst: true,
+          resumeText // send extracted text if available
         }),
       });
 
@@ -144,26 +163,23 @@ const AIResumeMatching: React.FC<AIResumeMatchingProps> = ({
         throw new Error(data.error || `Server error (${response.status})`);
       }
 
-  if (!data.match) {
+      if (!data.match) {
         throw new Error('Invalid response from AI service');
       }
 
       setMatchData(data.match);
-  setSource(data.source);
+      setSource(data.source);
       toast({
         title: "Analysis Complete",
         description: `Your fit score: ${data.match.fitScore}%`,
         variant: "default",
       });
-
     } catch (err) {
       console.error('AI Analysis error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to analyze match';
       setError(errorMessage);
-      
       const toastVariant: "default" | "destructive" = "destructive";
       let toastDescription = errorMessage;
-      
       if (errorMessage.includes('log in')) {
         toastDescription = 'Please log in to continue';
       } else if (errorMessage.includes('temporarily unavailable')) {
@@ -171,7 +187,6 @@ const AIResumeMatching: React.FC<AIResumeMatchingProps> = ({
       } else if (errorMessage.includes('Network error')) {
         toastDescription = 'Please check your internet connection';
       }
-      
       toast({
         title: "Analysis Failed",
         description: toastDescription,
@@ -349,36 +364,13 @@ const AIResumeMatching: React.FC<AIResumeMatchingProps> = ({
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="mb-4">
                       <ScoreGauge score={matchData.fitScore} />
                     </motion.div>
-
-                    {/* Celebrate great scores */}
-                    {matchData.fitScore >= 80 && (
-                      <div className="pointer-events-none absolute inset-0">
-                        {[...Array(18)].map((_, i) => (
-                          <motion.span
-                            key={i}
-                            className="absolute w-1.5 h-1.5 rounded-full"
-                            style={{
-                              left: `${Math.random() * 100}%`,
-                              top: `${Math.random() * 100}%`,
-                              backgroundColor: ['#10b981','#3b82f6','#f59e0b','#ef4444'][i % 4]
-                            }}
-                            initial={{ y: -10, opacity: 0 }}
-                            animate={{ y: [0, -20, 0], opacity: [0, 0.8, 0] }}
-                            transition={{ duration: 2, repeat: Infinity, delay: i * 0.1 }}
-                          />
-                        ))}
-                      </div>
-                    )}
-
                     <Badge className={`text-sm font-semibold px-4 py-2 ${getScoreBadgeColor(matchData.fitScore)} rounded-xl transition-all duration-300 shadow-sm`}>
                       {matchData.fitScore >= 80 ? 'Excellent Match' : 
                        matchData.fitScore >= 60 ? 'Good Match' : 'Needs Improvement'}
                     </Badge>
                   </div>
-
                   <Separator className="bg-gray-200/50" />
-
-                  {/* Summary Section */}
+                  {/* Detailed Comparison Section */}
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -390,56 +382,30 @@ const AIResumeMatching: React.FC<AIResumeMatchingProps> = ({
                       <h4 className="text-lg font-semibold text-gray-900">Match Summary</h4>
                     </div>
                     <p className="text-gray-700 text-sm leading-relaxed">{matchData.summary}</p>
+                    {/* Show what matches between user and job profile */}
+                    <div className="mt-4">
+                      <h5 className="font-semibold text-green-700 mb-2">Matched Skills/Experience:</h5>
+                      {matchData.strengths && matchData.strengths.length > 0 ? (
+                        <ul className="list-disc ml-6 text-green-700">
+                          {matchData.strengths.map((s, i) => (
+                            <li key={i}>{s}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span className="text-gray-500">No strong matches found.</span>
+                      )}
+                      <h5 className="font-semibold text-amber-700 mt-4 mb-2">Missing/Weak Areas:</h5>
+                      {matchData.weaknesses && matchData.weaknesses.length > 0 ? (
+                        <ul className="list-disc ml-6 text-amber-700">
+                          {matchData.weaknesses.map((w, i) => (
+                            <li key={i}>{w}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span className="text-gray-500">No major weaknesses detected.</span>
+                      )}
+                    </div>
                   </motion.div>
-
-                  {/* Strengths Section */}
-                  {matchData.strengths && matchData.strengths.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.4, delay: 0.2 }}
-                      className="bg-white/90 rounded-2xl p-6 shadow-lg backdrop-blur-sm"
-                    >
-                      <div className="flex items-center space-x-3 mb-4">
-                        <TrendingUp className="w-6 h-6 text-green-500" />
-                        <h4 className="text-lg font-semibold text-gray-900">Key Strengths</h4>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {matchData.strengths.map((s, i) => (
-                          <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, delay: i * 0.05 }}>
-                            <Badge className="bg-green-50 text-green-700 border border-green-200 rounded-full px-3 py-1 flex items-center gap-1">
-                              <CheckCircle className="w-4 h-4" /> {s}
-                            </Badge>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Weaknesses Section */}
-                  {matchData.weaknesses && matchData.weaknesses.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.4, delay: 0.3 }}
-                      className="bg-white/90 rounded-2xl p-6 shadow-lg backdrop-blur-sm"
-                    >
-                      <div className="flex items-center space-x-3 mb-4">
-                        <AlertTriangle className="w-6 h-6 text-amber-500" />
-                        <h4 className="text-lg font-semibold text-gray-900">Areas for Improvement</h4>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {matchData.weaknesses.map((w, i) => (
-                          <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, delay: i * 0.05 }}>
-                            <Badge className="bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-3 py-1 flex items-center gap-1">
-                              <AlertCircle className="w-4 h-4" /> {w}
-                            </Badge>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-
                   {/* Recommendations Section */}
                   {matchData.recommendations && matchData.recommendations.length > 0 && (
                     <motion.div
@@ -468,7 +434,6 @@ const AIResumeMatching: React.FC<AIResumeMatchingProps> = ({
                       </div>
                     </motion.div>
                   )}
-
                   {/* Action Buttons */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
