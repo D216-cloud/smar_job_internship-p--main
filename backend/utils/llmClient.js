@@ -58,9 +58,12 @@ async function generateJSON(prompt, { timeoutMs = 20000, apiKey = null } = {}) {
   } catch (err) {
     console.error('❌ DeepSeek API Error:', err.response?.data || err.message);
     return { 
-      ok: false, 
-      text: '', 
-      error: err?.response?.data?.error?.message || err?.message || 'deepseek-error' 
+      ok: false,
+      text: '',
+      error: (err?.response?.status === 401)
+        ? 'deepseek-unauthorized: Invalid API key or user not found.'
+        : (err?.response?.data?.error?.message || err?.message || 'deepseek-error'),
+      details: err?.response?.data || undefined
     };
   }
 }

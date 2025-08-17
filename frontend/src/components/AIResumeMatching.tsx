@@ -159,6 +159,8 @@ const AIResumeMatching: React.FC<AIResumeMatchingProps> = ({
           throw new Error('AI service temporarily unavailable. Please try again later.');
         } else if (response.status === 502) {
           throw new Error('Network error. Please check your connection and try again.');
+        } else if (data.error && data.error.includes('deepseek-unauthorized')) {
+          throw new Error('AI service authorization failed. Please check your DeepSeek/OpenRouter API key in the backend .env file.');
         }
         throw new Error(data.error || `Server error (${response.status})`);
       }
