@@ -156,10 +156,16 @@ const Sidebar: React.FC<SidebarProps> = ({
           {!isCollapsed && (
             <Link
               to={userRole === "admin" ? "/admin" : userRole === "company" ? "/company/home" : "/user/home"}
-              className="flex items-center gap-2"
+              className="flex items-center justify-center gap-2 w-full"
               onClick={onClose}
+              style={{ minHeight: 64 }}
             >
-              <img src={logo} alt="Logo" className="h-7 w-auto" />
+              <img 
+                src={logo} 
+                alt="Logo" 
+                className="h-13 w-auto mx-auto" 
+                style={{ display: 'block', marginRight: '40px', maxWidth: '120px' }} 
+              />
             </Link>
           )}
           <Button

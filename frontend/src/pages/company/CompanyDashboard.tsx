@@ -23,7 +23,8 @@ import {
   DollarSign, 
   UserCheck, 
   Trash2, 
-  Loader2 
+  Loader2,
+  Sparkles
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/context/AuthContext';
@@ -60,7 +61,7 @@ interface Job {
   company: string;
   companyId: string;
   postingType: string;
-  status?: string; // Make status optional since API might not always provide it
+  status?: string;
   createdAt: string;
   type?: string;
   applications?: number;
@@ -73,14 +74,14 @@ declare global {
   }
 }
 
-// Modern StatCard component with animation
+// ✅ Modern StatCard with glassmorphism and hover effects
 const StatCard = ({ icon: Icon, label, value, gradient, trend, trendValue }: StatCardProps) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.4, ease: 'easeOut' }}
   >
-    <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-white/95 backdrop-blur-sm rounded-2xl">
+    <Card className="group hover:shadow-2xl transition-all duration-300 border-0 bg-white/90 backdrop-blur-md rounded-2xl transform hover:-translate-y-1">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -177,7 +178,7 @@ export const CompanyDashboard = () => {
   const totalJobsPosted = jobs.length;
   const activeJobs = jobs.filter(job => (job.status || 'pending') === 'active').length;
   const totalApplicationsReceived = jobs.reduce((total, job) => total + (job.applications || 0), 0);
-  const candidatesHired = 0; // Static for now as applications section was removed
+  const candidatesHired = 0;
 
   const stats = [
     {
@@ -215,7 +216,6 @@ export const CompanyDashboard = () => {
   ];
 
   const getStatusBadge = (status: string | undefined) => {
-    // Handle undefined or null status with fallback
     const safeStatus = status || 'pending';
     
     const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -224,15 +224,11 @@ export const CompanyDashboard = () => {
       closed: 'destructive',
       draft: 'outline',
       pending: 'outline',
-      interviewed: 'secondary',
-      accepted: 'default',
-      rejected: 'destructive',
-      hired: 'default',
     };
     return (
       <Badge
         variant={variants[safeStatus] || 'outline'}
-        className="px-3 py-1 rounded-full text-xs font-medium bg-opacity-80"
+        className="px-3 py-1.5 rounded-full text-xs font-medium shadow-sm"
       >
         {safeStatus.charAt(0).toUpperCase() + safeStatus.slice(1)}
       </Badge>
@@ -255,27 +251,30 @@ export const CompanyDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 p-6 md:p-10">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6 md:p-10">
       <div className="max-w-7xl mx-auto space-y-12">
+
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
-          className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
+          className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8"
         >
           <div>
-            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-blue-700">
+            <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-blue-700 tracking-tight">
               Company Dashboard
             </h1>
             <p className="text-gray-600 text-lg mt-2 font-medium">
-              Streamline your hiring with real-time job posting insights
+              Streamline your hiring with real-time insights
             </p>
+            
             {userData?.name && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4, delay: 0.2 }}
-                className="mt-6 p-5 bg-white/95 rounded-2xl border border-blue-100 shadow-md backdrop-blur-sm"
+                className="mt-6 p-6 bg-white/95 rounded-2xl border border-blue-100/60 shadow-lg backdrop-blur-sm"
               >
                 <div className="flex items-center gap-4">
                   <Briefcase className="h-6 w-6 text-blue-600" />
@@ -285,7 +284,7 @@ export const CompanyDashboard = () => {
                     {totalJobsPosted !== 1 ? 's' : ''}
                   </span>
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-4">
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-green-600" />
                     <span className="text-sm text-gray-700">
@@ -303,12 +302,13 @@ export const CompanyDashboard = () => {
               </motion.div>
             )}
           </div>
-          <div className="flex gap-3">
+
+          <div className="flex flex-col sm:flex-row gap-3">
             <motion.div whileHover={{ scale: 1.05 }} transition={{ type: 'spring', stiffness: 300 }}>
               <Button
                 variant="outline"
                 onClick={() => fetchJobs()}
-                className="h-11 rounded-xl bg-white/90 hover:bg-gray-100 border-gray-200 shadow-sm"
+                className="h-12 rounded-xl bg-white/90 hover:bg-gray-100 border-gray-200 shadow-sm text-sm font-medium px-5"
               >
                 <TrendingUp className="h-5 w-5 mr-2 text-gray-700" />
                 Refresh
@@ -317,7 +317,7 @@ export const CompanyDashboard = () => {
             <motion.div whileHover={{ scale: 1.05 }} transition={{ type: 'spring', stiffness: 300 }}>
               <Button
                 onClick={() => navigate('/company/post-job')}
-                className="h-11 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md"
+                className="h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md px-6 font-medium"
               >
                 <Plus className="h-5 w-5 mr-2" />
                 Post New Job
@@ -326,7 +326,7 @@ export const CompanyDashboard = () => {
           </div>
         </motion.div>
 
-        {/* Enhanced Stats Cards Section */}
+        {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, index) => (
             <StatCard
@@ -341,28 +341,24 @@ export const CompanyDashboard = () => {
           ))}
         </div>
 
-        {/* Enhanced Posted Jobs Table */}
+        {/* Jobs Table */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <Card className="border-0 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl">
+          <Card className="border-0 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between px-6 pt-6 pb-4">
               <div>
-                <CardTitle className="text-2xl font-semibold text-gray-900">
-                  Your Job Postings
-                </CardTitle>
-                <p className="text-sm text-gray-500 mt-1 font-medium">
-                  Monitor and manage your active job listings
-                </p>
+                <CardTitle className="text-2xl font-semibold text-gray-900">Your Job Postings</CardTitle>
+                <p className="text-sm text-gray-500 mt-1 font-medium">Manage and monitor your listings</p>
               </div>
               <motion.div whileHover={{ scale: 1.05 }} transition={{ type: 'spring', stiffness: 300 }}>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/company/post-job')}
-                  className="h-10 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm"
+                  className="h-10 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm text-sm font-medium"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   New Job
@@ -376,57 +372,26 @@ export const CompanyDashboard = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="relative text-center py-12 bg-gray-50/90 rounded-xl backdrop-blur-sm"
+                    className="relative text-center py-16 bg-gray-50/80 rounded-xl backdrop-blur-sm"
                   >
-                    {/* Particle Effects */}
                     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                      {[...Array(12)].map((_, i) => (
+                      {[...Array(10)].map((_, i) => (
                         <motion.span
                           key={i}
                           className="absolute w-2 h-2 bg-blue-400 rounded-full opacity-20"
-                          initial={{
-                            x: Math.random() * 100 - 50,
-                            y: Math.random() * 100 - 50,
-                            scale: 0.4,
-                          }}
-                          animate={{
-                            y: [0, -40, 0],
-                            opacity: [0.2, 0.7, 0.2],
-                            scale: [0.4, 1.2, 0.4],
-                          }}
-                          transition={{
-                            duration: 2.5,
-                            repeat: Infinity,
-                            delay: i * 0.15,
-                            ease: 'easeInOut',
-                          }}
+                          initial={{ x: Math.random() * 100 - 50, y: Math.random() * 100 - 50, scale: 0.4 }}
+                          animate={{ y: [0, -30, 0], opacity: [0.2, 0.6, 0.2], scale: [0.4, 1.0, 0.4] }}
+                          transition={{ duration: 2, repeat: Infinity, delay: i * 0.2, ease: 'easeInOut' }}
                           style={{ left: `${Math.random() * 100}%` }}
                         />
                       ))}
                     </div>
                     <div className="flex flex-col items-center space-y-4">
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-                      >
-                        <Loader2 className="w-12 h-12 text-blue-600" />
-                      </motion.div>
-                      <motion.span
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, repeat: Infinity, repeatType: 'reverse' }}
-                        className="text-lg font-semibold text-gray-700"
-                      >
-                        Fetching Job Listings...
-                      </motion.span>
-                      <motion.div
-                        className="w-64 h-3 bg-gray-200 rounded-full overflow-hidden"
-                        initial={{ width: 0 }}
-                        animate={{ width: '16rem' }}
-                        transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                      >
-                        <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-600" />
-                      </motion.div>
+                      <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+                      <span className="text-lg font-semibold text-gray-700">Loading job listings...</span>
+                      <div className="w-64 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 animate-pulse" />
+                      </div>
                     </div>
                   </motion.div>
                 ) : filteredJobs.length === 0 ? (
@@ -434,23 +399,21 @@ export const CompanyDashboard = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4 }}
-                    className="text-center py-12"
+                    className="text-center py-16"
                   >
-                    <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-6">
                       <Briefcase className="h-8 w-8 text-gray-400" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                      No Jobs Found
-                    </h3>
-                    <p className="text-gray-600 mb-4 text-sm">
-                      You haven't posted any jobs yet. Start by creating a new job posting.
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">No Jobs Posted Yet</h3>
+                    <p className="text-gray-600 mb-6 max-w-md mx-auto text-sm">
+                      Start building your team by posting your first job.
                     </p>
                     <motion.div whileHover={{ scale: 1.05 }} transition={{ type: 'spring', stiffness: 300 }}>
                       <Button
                         onClick={() => navigate('/company/post-job')}
-                        className="h-10 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md"
+                        className="h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md px-6 font-medium"
                       >
-                        <Plus className="h-4 w-4 mr-2" />
+                        <Sparkles className="h-5 w-5 mr-2" />
                         Post Your First Job
                       </Button>
                     </motion.div>
@@ -458,14 +421,14 @@ export const CompanyDashboard = () => {
                 ) : (
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-b border-gray-200">
-                        <TableHead className="text-gray-900 font-semibold">Job Details</TableHead>
-                        <TableHead className="text-gray-900 font-semibold">Location & Salary</TableHead>
-                        <TableHead className="hidden md:table-cell text-gray-900 font-semibold">Posted Date</TableHead>
-                        <TableHead className="hidden lg:table-cell text-gray-900 font-semibold">Job Type</TableHead>
-                        <TableHead className="text-gray-900 font-semibold">Status</TableHead>
-                        <TableHead className="text-gray-900 font-semibold">Applications</TableHead>
-                        <TableHead className="text-gray-900 font-semibold">Actions</TableHead>
+                      <TableRow className="border-b border-gray-100">
+                        <TableHead className="font-semibold text-gray-800">Job Details</TableHead>
+                        <TableHead className="font-semibold text-gray-800">Location & Salary</TableHead>
+                        <TableHead className="hidden md:table-cell font-semibold text-gray-800">Posted</TableHead>
+                        <TableHead className="hidden lg:table-cell font-semibold text-gray-800">Type</TableHead>
+                        <TableHead className="font-semibold text-gray-800">Status</TableHead>
+                        <TableHead className="font-semibold text-gray-800">Applications</TableHead>
+                        <TableHead className="font-semibold text-gray-800">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -482,25 +445,19 @@ export const CompanyDashboard = () => {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.3, delay: index * 0.1 }}
-                            className="hover:bg-gray-50/50 transition-colors border-b border-gray-100"
+                            className="hover:bg-blue-50/60 transition-colors border-b border-gray-100 last:border-b-0"
                           >
-                            <TableCell>
-                              <div className="flex items-center gap-3">
-                                <motion.div
-                                  className="w-10 h-10 rounded-full bg-gradient-to-r from-green-600 to-teal-600 flex items-center justify-center text-white text-sm font-medium shadow-md"
-                                  whileHover={{ scale: 1.1 }}
-                                  transition={{ type: 'spring', stiffness: 300 }}
-                                >
+                            <TableCell className="py-5">
+                              <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-sm">
                                   {job.title.charAt(0).toUpperCase()}
-                                </motion.div>
-                                <div className="flex-1">
-                                  <div className="font-semibold text-gray-900">{job.title}</div>
-                                  <div className="text-sm text-gray-600 truncate max-w-xs">
-                                    {job.description}
-                                  </div>
+                                </div>
+                                <div>
+                                  <div className="font-bold text-gray-800">{job.title}</div>
+                                  <div className="text-sm text-gray-600 line-clamp-1">{job.description}</div>
                                   <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
                                     <Building2 className="h-3 w-3" />
-                                    <span>{job.company || 'Company'}</span>
+                                    {job.company || 'Private'}
                                   </div>
                                 </div>
                               </div>
@@ -508,111 +465,72 @@ export const CompanyDashboard = () => {
                             <TableCell>
                               <div className="space-y-1">
                                 <div className="text-sm text-gray-600 flex items-center gap-1">
-                                  <MapPin className="h-3 w-3 text-gray-500" />
-                                  <span>{job.location || 'Remote'}</span>
+                                  <MapPin className="h-3.5 w-3.5 text-blue-500" />
+                                  {job.location || 'Remote'}
                                 </div>
                                 <div className="text-sm text-gray-600 flex items-center gap-1">
-                                  <DollarSign className="h-3 w-3 text-gray-500" />
-                                  <span>{job.salary ? `₹${job.salary}` : 'Not specified'}</span>
+                                  <DollarSign className="h-3.5 w-3.5 text-green-500" />
+                                  ₹{job.salary || 'Not specified'}
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell className="hidden md:table-cell">
-                              <div className="text-sm">
-                                <div className="font-medium text-gray-900">
-                                  {new Date(job.createdAt).toLocaleDateString()}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {new Date(job.createdAt).toLocaleTimeString()}
-                                </div>
+                              <div className="text-sm text-gray-600">
+                                {new Date(job.createdAt).toLocaleDateString()}
                               </div>
                             </TableCell>
                             <TableCell className="hidden lg:table-cell">
-                              <div className="space-y-1">
-                                <div className="text-sm">
-                                  <span className="font-medium text-gray-900">Type:</span>
-                                  <span className="text-gray-600 ml-1">
-                                    {job.postingType || job.type || 'Full-time'}
-                                  </span>
-                                </div>
-                                {job.company && (
-                                  <div className="text-sm">
-                                    <span className="font-medium text-gray-900">Company:</span>
-                                    <span className="text-gray-600 ml-1">{job.company}</span>
-                                  </div>
-                                )}
-                              </div>
+                              <Badge variant="outline" className="text-xs px-2.5 py-1">
+                                {job.postingType || job.type || 'Full-time'}
+                              </Badge>
                             </TableCell>
                             <TableCell>
-                              <div className="flex flex-col gap-1">
-                                {getStatusBadge(job.status)}
-                                <div className="text-xs text-gray-500">
-                                  {job.status === 'active' && 'Accepting applications'}
-                                  {job.status === 'inactive' && 'Not accepting applications'}
-                                  {job.status === 'closed' && 'Position filled'}
-                                  {job.status === 'draft' && 'Draft - not published'}
-                                </div>
-                              </div>
+                              {getStatusBadge(job.status)}
                             </TableCell>
                             <TableCell>
-                              <div className="flex flex-col gap-1">
-                                <div className="flex items-center gap-1">
-                                  <Users className="h-4 w-4 text-blue-600" />
-                                  <span className="font-medium text-gray-900">{applicationCount}</span>
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {applicationCount === 0 && 'No applications yet'}
-                                  {applicationCount === 1 && '1 application'}
-                                  {applicationCount > 1 && `${applicationCount} applications`}
-                                </div>
+                              <div className="flex items-center gap-1.5 text-sm">
+                                <Users className="h-4 w-4 text-blue-600" />
+                                <span className="font-medium text-gray-800">{applicationCount}</span>
                               </div>
                             </TableCell>
                             <TableCell>
                               <div className="flex space-x-2">
-                                <motion.div whileHover={{ scale: 1.1 }} transition={{ type: 'spring', stiffness: 300 }}>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => navigate(`/company/jobs/${job._id}/applications`)}
-                                    title="View Applications"
-                                    className="h-8 rounded-lg border-blue-200 hover:bg-blue-50 hover:border-blue-300"
-                                  >
-                                    <Users className="h-4 w-4 text-blue-600" />
-                                  </Button>
-                                </motion.div>
-                                <motion.div whileHover={{ scale: 1.1 }} transition={{ type: 'spring', stiffness: 300 }}>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => navigate(`/company/jobs/${job._id}`)}
-                                    title="View Job Details"
-                                    className="h-8 rounded-lg border-green-200 hover:bg-green-50 hover:border-green-300"
-                                  >
-                                    <Eye className="h-4 w-4 text-green-600" />
-                                  </Button>
-                                </motion.div>
-                                <motion.div whileHover={{ scale: 1.1 }} transition={{ type: 'spring', stiffness: 300 }}>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => navigate(`/company/jobs/${job._id}/edit`)}
-                                    title="Edit Job"
-                                    className="h-8 rounded-lg border-yellow-200 hover:bg-yellow-50 hover:border-yellow-300"
-                                  >
-                                    <Edit className="h-4 w-4 text-yellow-600" />
-                                  </Button>
-                                </motion.div>
-                                <motion.div whileHover={{ scale: 1.1 }} transition={{ type: 'spring', stiffness: 300 }}>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleDeleteJob(job._id)}
-                                    title="Delete Job"
-                                    className="h-8 rounded-lg border-red-200 hover:bg-red-50 hover:border-red-300"
-                                  >
-                                    <Trash2 className="h-4 w-4 text-red-600" />
-                                  </Button>
-                                </motion.div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => navigate(`/company/jobs/${job._id}/applications`)}
+                                  title="View Applications"
+                                  className="h-9 w-9 p-0 rounded-full hover:bg-blue-50"
+                                >
+                                  <Users className="h-4 w-4 text-blue-600" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => navigate(`/company/jobs/${job._id}`)}
+                                  title="View Job"
+                                  className="h-9 w-9 p-0 rounded-full hover:bg-green-50"
+                                >
+                                  <Eye className="h-4 w-4 text-green-600" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => navigate(`/company/jobs/${job._id}/edit`)}
+                                  title="Edit Job"
+                                  className="h-9 w-9 p-0 rounded-full hover:bg-yellow-50"
+                                >
+                                  <Edit className="h-4 w-4 text-yellow-600" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleDeleteJob(job._id)}
+                                  title="Delete Job"
+                                  className="h-9 w-9 p-0 rounded-full hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-600" />
+                                </Button>
                               </div>
                             </TableCell>
                           </motion.tr>
@@ -632,42 +550,28 @@ export const CompanyDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <Card className="border-0 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl">
+          <Card className="border-0 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl overflow-hidden">
             <CardHeader>
               <CardTitle className="text-2xl font-semibold text-gray-900">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <motion.div whileHover={{ scale: 1.05 }} transition={{ type: 'spring', stiffness: 300 }}>
-                  <Button
-                    variant="outline"
-                    className="h-20 flex flex-col gap-2 rounded-xl border-gray-200 bg-white/90 hover:bg-gray-100 shadow-sm"
-                    onClick={() => navigate('/company/post-job')}
-                  >
-                    <Plus className="h-6 w-6 text-blue-600" />
-                    <span className="text-sm font-medium">Post New Job</span>
-                  </Button>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} transition={{ type: 'spring', stiffness: 300 }}>
-                  <Button
-                    variant="outline"
-                    className="h-20 flex flex-col gap-2 rounded-xl border-gray-200 bg-white/90 hover:bg-gray-100 shadow-sm"
-                    onClick={() => navigate('/company/candidates')}
-                  >
-                    <Users className="h-6 w-6 text-purple-600" />
-                    <span className="text-sm font-medium">Browse Candidates</span>
-                  </Button>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} transition={{ type: 'spring', stiffness: 300 }}>
-                  <Button
-                    variant="outline"
-                    className="h-20 flex flex-col gap-2 rounded-xl border-gray-200 bg-white/90 hover:bg-gray-100 shadow-sm"
-                    onClick={() => navigate('/company/analytics')}
-                  >
-                    <TrendingUp className="h-6 w-6 text-green-600" />
-                    <span className="text-sm font-medium">View Analytics</span>
-                  </Button>
-                </motion.div>
+                {[
+                  { label: "Post New Job", icon: Plus, to: "/company/post-job", color: "blue" },
+                  { label: "Browse Candidates", icon: Users, to: "/company/candidates", color: "purple" },
+                  { label: "View Analytics", icon: TrendingUp, to: "/company/analytics", color: "green" },
+                ].map((action, i) => (
+                  <motion.div key={i} whileHover={{ scale: 1.03 }} transition={{ type: 'spring', stiffness: 300 }}>
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate(action.to)}
+                      className={`h-20 w-full flex flex-col items-center justify-center gap-2 rounded-xl border-gray-200 bg-white/90 hover:bg-${action.color}-50 hover:border-${action.color}-200 shadow-sm transition-all`}
+                    >
+                      <action.icon className={`h-6 w-6 text-${action.color}-600`} />
+                      <span className="text-sm font-medium">{action.label}</span>
+                    </Button>
+                  </motion.div>
+                ))}
               </div>
             </CardContent>
           </Card>

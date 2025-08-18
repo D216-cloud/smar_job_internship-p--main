@@ -313,7 +313,7 @@ router.post('/match', authMiddleware, async (req, res) => {
     Technical Skills: ${JSON.stringify(userData.skills || {})}
     Education History: ${JSON.stringify(userData.educationHistory || [])}
     Work Experience: ${JSON.stringify(userData.experienceHistory || [])}
-  Resume Text: ${String(resumeText || '').substring(0, 2000)}
+    Resume Text: ${String(resumeText || '').substring(0, 2000)}
 
     JOB REQUIREMENTS:
     Title: ${jobData.title}
@@ -329,10 +329,11 @@ router.post('/match', authMiddleware, async (req, res) => {
       "summary": "<2-3 sentence summary of the match>",
       "strengths": ["<matching skill 1>", "<matching skill 2>", "<matching experience>"],
       "weaknesses": ["<missing skill 1>", "<gap in experience>"],
-      "recommendations": ["<specific advice 1>", "<specific advice 2>"]
+      "recommendations": ["<specific advice 1>", "<specific advice 2>"],
+      "matchedCriteria": ["<matched skill or requirement 1>", "<matched keyword 2>"]
     }
 
-    Focus on technical skills match, experience level alignment, and job requirements coverage.
+    Focus on technical skills match, experience level alignment, and job requirements coverage. For matchedCriteria, list all specific skills, keywords, or requirements from the job that are found in the candidate's resume/profile.
     `;
     // Call DeepSeek with a strict time budget; fall back if it exceeds
     console.log('🤖 Calling DeepSeek with prompt length:', prompt.length);
@@ -360,6 +361,7 @@ router.post('/match', authMiddleware, async (req, res) => {
     console.log('📝 DeepSeek response preview:', text.substring(0, 200) + '...');
 
     // Parse the JSON response
+
     let aiAnalysis;
     try {
       // Extract JSON from the response (in case there's extra text or code fences)
@@ -367,14 +369,16 @@ router.post('/match', authMiddleware, async (req, res) => {
       const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         aiAnalysis = JSON.parse(jsonMatch[0]);
-        
         // Validate required fields and provide defaults
         aiAnalysis.fitScore = typeof aiAnalysis.fitScore === 'number' ? Math.min(Math.max(aiAnalysis.fitScore, 0), 100) : 50;
         aiAnalysis.summary = aiAnalysis.summary || 'Analysis completed successfully.';
         aiAnalysis.strengths = Array.isArray(aiAnalysis.strengths) ? aiAnalysis.strengths : ['Profile reviewed'];
         aiAnalysis.weaknesses = Array.isArray(aiAnalysis.weaknesses) ? aiAnalysis.weaknesses : ['Areas for improvement identified'];
         aiAnalysis.recommendations = Array.isArray(aiAnalysis.recommendations) ? aiAnalysis.recommendations : ['Continue professional development'];
-        
+        // Ensure matchedCriteria is present (AI or fallback)
+        if (!Array.isArray(aiAnalysis.matchedCriteria)) {
+          aiAnalysis.matchedCriteria = Array.isArray(aiAnalysis.strengths) ? aiAnalysis.strengths : [];
+        }
         console.log('✅ Successfully parsed AI response:', aiAnalysis);
       } else {
         throw new Error('No JSON found in response');
@@ -389,7 +393,8 @@ router.post('/match', authMiddleware, async (req, res) => {
         summary: `Analysis completed. The candidate's profile shows ${resumeText ? 'resume content available' : 'limited resume data'} for ${jobData.title} position.`,
         strengths: resumeText ? ['Resume uploaded', 'Profile data available'] : ['Profile partially complete'],
         weaknesses: resumeText ? ['Detailed analysis pending'] : ['Resume not uploaded', 'Profile incomplete'],
-        recommendations: ['Upload a detailed resume', 'Complete profile sections', 'Apply to relevant positions']
+        recommendations: ['Upload a detailed resume', 'Complete profile sections', 'Apply to relevant positions'],
+        matchedCriteria: resumeText ? ['Resume uploaded', 'Profile data available'] : ['Profile partially complete']
       };
     }
 

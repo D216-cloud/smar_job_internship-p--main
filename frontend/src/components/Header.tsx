@@ -72,11 +72,12 @@ const TopNavbar = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Enhanced Logo */}
-          <Link to="/" className="flex items-center group">
+          <Link to="/" className="flex items-center justify-center group" style={{ minHeight: 64 }}>
             <img
               src={logo}
               alt="Logo"
-              className="h-8 w-auto object-contain bg-transparent"
+              className="h-14 w-auto object-contain bg-transparent mx-auto"
+              style={{ display: 'block', marginRight: '25px', maxWidth: '140px' }}
             />
           </Link>
 

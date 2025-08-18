@@ -118,13 +118,13 @@ export const UserJobs = () => {
   // Loading state
   if (loading) {
     return (
-      <div className={cn("min-h-screen flex items-center justify-center", darkMode ? "bg-gray-900" : "bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50")}>
-        <div className="text-center space-y-4 animate-fade-in">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto text-blue-600" />
+      <div className={cn("min-h-screen flex items-center justify-center animate-gradient-x", darkMode ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" : "bg-gradient-to-br from-green-50 via-teal-50 to-cyan-50")}>
+        <div className="text-center space-y-4 animate-fade-in-up">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto text-teal-600" />
           <div className="space-y-2">
             <h3 className="text-xl font-semibold">Finding Your Dream Jobs</h3>
             <p className="text-gray-500">Analyzing {totalJobs} opportunities for the best matches</p>
-            <Progress value={75} className="w-64 mx-auto h-2" />
+            <Progress value={75} className="w-64 mx-auto h-2 rounded-full" />
           </div>
         </div>
       </div>
@@ -134,8 +134,8 @@ export const UserJobs = () => {
   // Error state
   if (error) {
     return (
-      <div className={cn("min-h-screen flex items-center justify-center", darkMode ? "bg-gray-900" : "bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50")}>
-        <Card className="max-w-md mx-auto border-red-200 bg-red-50 shadow-lg animate-fade-in">
+      <div className={cn("min-h-screen flex items-center justify-center animate-gradient-x", darkMode ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" : "bg-gradient-to-br from-green-50 via-teal-50 to-cyan-50")}>
+        <Card className="max-w-md mx-auto border-red-200 bg-red-50 shadow-lg animate-fade-in-up rounded-2xl">
           <CardContent className="p-8 text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4 animate-bounce" />
             <h3 className="text-lg font-semibold mb-2">Error Loading Jobs</h3>
@@ -143,11 +143,11 @@ export const UserJobs = () => {
             <div className="flex gap-3 justify-center">
             <Button 
               onClick={() => window.location.reload()} 
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105"
+              className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 transition-all duration-300 transform hover:scale-105 rounded-xl"
             >
               Try Again
             </Button>
-              <Button variant="outline" onClick={() => navigate('/')} className="transition-all duration-300 transform hover:scale-105">
+              <Button variant="outline" onClick={() => navigate('/')} className="transition-all duration-300 transform hover:scale-105 rounded-xl">
                 Go Home
               </Button>
             </div>
@@ -188,12 +188,12 @@ export const UserJobs = () => {
   };
 
   return (
-    <div className={cn("min-h-screen relative overflow-hidden transition-colors duration-300", darkMode ? "bg-gray-900 text-gray-100" : "bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 text-gray-900")}>
+    <div className={cn("min-h-screen relative overflow-hidden transition-colors duration-300", darkMode ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-100" : "bg-gradient-to-br from-green-50 via-teal-50 to-cyan-50 text-gray-900")}>
       {/* Background elements */}
       {!darkMode && (
       <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-blue-200/40 to-purple-200/40 rounded-full blur-3xl transform rotate-12 animate-float"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-tl from-cyan-200/40 to-pink-200/40 rounded-full blur-3xl transform -rotate-12 animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-teal-200/40 to-cyan-200/40 rounded-full blur-3xl transform rotate-12 animate-float-slow"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-tl from-green-200/40 to-blue-200/40 rounded-full blur-3xl transform -rotate-12 animate-float-slow" style={{ animationDelay: '2s' }}></div>
       </div>
       )}
 
@@ -221,7 +221,7 @@ export const UserJobs = () => {
                       variant="ghost" 
                       size="icon" 
                       onClick={() => setDarkMode(!darkMode)}
-                      className="rounded-full transition-all duration-300 hover:bg-gray-200/50 dark:hover:bg-gray-700"
+                      className="rounded-full transition-all duration-300 hover:bg-gray-200/50 dark:hover:bg-gray-700 hover:scale-105"
                     >
                       {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                     </Button>
@@ -233,10 +233,10 @@ export const UserJobs = () => {
               </TooltipProvider>
               <Button 
                 variant="outline" 
-                className="gap-2 transition-all duration-300 hover:shadow-md"
+                className="gap-2 transition-all duration-300 hover:shadow-md hover:scale-105 rounded-xl"
                 onClick={() => setNotificationsEnabled(!notificationsEnabled)}
               >
-                <Bell className={cn("h-5 w-5", notificationsEnabled ? "text-blue-600 fill-blue-100" : "text-gray-400")} />
+                <Bell className={cn("h-5 w-5", notificationsEnabled ? "text-teal-600 fill-teal-100" : "text-gray-400")} />
                 {notificationsEnabled ? 'Notifications On' : 'Notifications Off'}
               </Button>
             </div>
@@ -244,25 +244,25 @@ export const UserJobs = () => {
 
           {/* Quick Stats (trimmed) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <Card className={cn("border-0 shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105", darkMode ? "bg-gray-800" : "bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200")}>
+            <Card className={cn("border-0 shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105 rounded-2xl", darkMode ? "bg-gray-800" : "bg-gradient-to-r from-teal-50 to-teal-100 border-teal-200")}>
               <CardContent className="p-4 flex items-center gap-4">
-                <div className={cn("p-3 rounded-lg transition-colors duration-300", darkMode ? "bg-gray-700" : "bg-blue-100")}>
-                  <Briefcase className={cn("h-6 w-6", darkMode ? "text-blue-400" : "text-blue-600")} />
+                <div className={cn("p-3 rounded-lg transition-colors duration-300", darkMode ? "bg-gray-700" : "bg-teal-100")}>
+                  <Briefcase className={cn("h-6 w-6", darkMode ? "text-teal-400" : "text-teal-600")} />
                 </div>
                 <div>
                   <p className={cn("text-sm", darkMode ? "text-gray-400" : "text-gray-600")}>Total Jobs</p>
-                  <p className={cn("text-2xl font-bold", darkMode ? "text-white" : "text-blue-800")}>{totalJobs}</p>
+                  <p className={cn("text-2xl font-bold", darkMode ? "text-white" : "text-teal-800")}>{totalJobs}</p>
                 </div>
               </CardContent>
             </Card>
-    <Card className={cn("border-0 shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105", darkMode ? "bg-gray-800" : "bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200")}> 
+    <Card className={cn("border-0 shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105 rounded-2xl", darkMode ? "bg-gray-800" : "bg-gradient-to-r from-cyan-50 to-cyan-100 border-cyan-200")}> 
               <CardContent className="p-4 flex items-center gap-4">
-                <div className={cn("p-3 rounded-lg transition-colors duration-300", darkMode ? "bg-gray-700" : "bg-purple-100")}>
-                  <Bookmark className={cn("h-6 w-6", darkMode ? "text-purple-400" : "text-purple-600")} />
+                <div className={cn("p-3 rounded-lg transition-colors duration-300", darkMode ? "bg-gray-700" : "bg-cyan-100")}>
+                  <Bookmark className={cn("h-6 w-6", darkMode ? "text-cyan-400" : "text-cyan-600")} />
                 </div>
                 <div>
                   <p className={cn("text-sm", darkMode ? "text-gray-400" : "text-gray-600")}>Saved Jobs</p>
-      <p className={cn("text-2xl font-bold", darkMode ? "text-white" : "text-purple-800")}>{savedJobs.length}</p>
+      <p className={cn("text-2xl font-bold", darkMode ? "text-white" : "text-cyan-800")}>{savedJobs.length}</p>
                 </div>
               </CardContent>
             </Card>
@@ -276,7 +276,7 @@ export const UserJobs = () => {
         <div className="flex flex-col">
           {/* Search and Filter Controls */}
           <div className="mb-8">
-            <Card className={cn("border-0 shadow-md transition-all duration-300 hover:shadow-lg", darkMode ? "bg-gray-800" : "bg-white/90")}>
+            <Card className={cn("border-0 shadow-md transition-all duration-300 hover:shadow-lg rounded-2xl", darkMode ? "bg-gray-800" : "bg-white/90")}>
               <CardContent className="p-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-1">
@@ -284,7 +284,7 @@ export const UserJobs = () => {
                       placeholder="Search jobs..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className={cn("h-12 rounded-xl transition-all duration-300 focus:ring-2 focus:ring-blue-500", darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200")}
+                      className={cn("h-12 rounded-xl transition-all duration-300 focus:ring-2 focus:ring-teal-500 focus:shadow-lg", darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200")}
                     />
                   </div>
                   
@@ -292,7 +292,7 @@ export const UserJobs = () => {
                     <Button 
                       onClick={() => setShowFilters(!showFilters)}
                       variant={showFilters ? "default" : "outline"}
-                      className={cn("h-12 gap-2 rounded-xl transition-all duration-300 hover:shadow-md", showFilters ? "bg-gradient-to-r from-blue-600 to-purple-600" : "")}
+                      className={cn("h-12 gap-2 rounded-xl transition-all duration-300 hover:shadow-md hover:scale-105", showFilters ? "bg-gradient-to-r from-teal-600 to-cyan-600" : "")}
                     >
                       <Filter className="h-5 w-5" />
                       {showFilters ? 'Hide Filters' : 'Show Filters'}
@@ -300,10 +300,10 @@ export const UserJobs = () => {
                     </Button>
                     
                     <Select value={viewMode} onValueChange={(val: 'grid' | 'list') => setViewMode(val)}>
-                      <SelectTrigger className={cn("w-28 h-12 rounded-xl transition-all duration-300", darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200")}>
+                      <SelectTrigger className={cn("w-28 h-12 rounded-xl transition-all duration-300 focus:shadow-lg", darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200")}>
                         <SelectValue placeholder="View" />
                       </SelectTrigger>
-                      <SelectContent className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
+                      <SelectContent className={darkMode ? "bg-gray-800 border-gray-700 shadow-xl rounded-xl" : "shadow-xl rounded-xl"}>
                         <SelectItem value="grid" className={darkMode ? "hover:bg-gray-700" : ""}>
                           <div className="flex items-center gap-2">
                             <Grid className="h-4 w-4" /> Grid
@@ -330,10 +330,10 @@ export const UserJobs = () => {
                     Location
                   </label>
                   <Select value={locationFilter} onValueChange={setLocationFilter}>
-                          <SelectTrigger className={cn("h-12 rounded-xl transition-all duration-300 focus:ring-2 focus:ring-blue-500", darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200")}>
+                          <SelectTrigger className={cn("h-12 rounded-xl transition-all duration-300 focus:ring-2 focus:ring-teal-500 focus:shadow-lg", darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200")}>
                       <SelectValue placeholder="Select location" />
                     </SelectTrigger>
-                          <SelectContent className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
+                          <SelectContent className={darkMode ? "bg-gray-800 border-gray-700 shadow-xl rounded-xl" : "shadow-xl rounded-xl"}>
                             <SelectItem value="all" className={darkMode ? "hover:bg-gray-700" : ""}>All Locations</SelectItem>
                             <SelectItem value="remote" className={darkMode ? "hover:bg-gray-700" : ""}>Remote</SelectItem>
                             <SelectItem value="san francisco" className={darkMode ? "hover:bg-gray-700" : ""}>San Francisco, CA</SelectItem>
@@ -353,10 +353,10 @@ export const UserJobs = () => {
                     Job Type
                   </label>
                   <Select value={typeFilter} onValueChange={setTypeFilter}>
-                          <SelectTrigger className={cn("h-12 rounded-xl transition-all duration-300 focus:ring-2 focus:ring-blue-500", darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200")}>
+                          <SelectTrigger className={cn("h-12 rounded-xl transition-all duration-300 focus:ring-2 focus:ring-teal-500 focus:shadow-lg", darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200")}>
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
-                          <SelectContent className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
+                          <SelectContent className={darkMode ? "bg-gray-800 border-gray-700 shadow-xl rounded-xl" : "shadow-xl rounded-xl"}>
                             <SelectItem value="all" className={darkMode ? "hover:bg-gray-700" : ""}>All Types</SelectItem>
                             <SelectItem value="full-time" className={darkMode ? "hover:bg-gray-700" : ""}>Full-Time</SelectItem>
                             <SelectItem value="part-time" className={darkMode ? "hover:bg-gray-700" : ""}>Part-Time</SelectItem>
@@ -374,10 +374,10 @@ export const UserJobs = () => {
                           Experience
                         </label>
                         <Select value={experienceFilter} onValueChange={setExperienceFilter}>
-                          <SelectTrigger className={cn("h-12 rounded-xl transition-all duration-300 focus:ring-2 focus:ring-blue-500", darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200")}>
+                          <SelectTrigger className={cn("h-12 rounded-xl transition-all duration-300 focus:ring-2 focus:ring-teal-500 focus:shadow-lg", darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200")}>
                             <SelectValue placeholder="Select level" />
                           </SelectTrigger>
-                          <SelectContent className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
+                          <SelectContent className={darkMode ? "bg-gray-800 border-gray-700 shadow-xl rounded-xl" : "shadow-xl rounded-xl"}>
                             <SelectItem value="all" className={darkMode ? "hover:bg-gray-700" : ""}>All Levels</SelectItem>
                             <SelectItem value="entry" className={darkMode ? "hover:bg-gray-700" : ""}>Entry Level</SelectItem>
                             <SelectItem value="mid" className={darkMode ? "hover:bg-gray-700" : ""}>Mid Level</SelectItem>
@@ -399,7 +399,7 @@ export const UserJobs = () => {
                           max={250000}
                     min={30000}
                     step={5000}
-                          className={cn("w-full transition-all duration-300", darkMode ? "[&_.slider-thumb]:bg-white [&_.slider-range]:bg-blue-500" : "")}
+                          className={cn("w-full transition-all duration-300", darkMode ? "[&_.slider-thumb]:bg-white [&_.slider-range]:bg-teal-500" : "")}
                   />
                 </div>
                 </div>
@@ -418,13 +418,13 @@ export const UserJobs = () => {
                             setExperienceFilter('all');
                             setSalaryRange([50000]);
                           }}
-                          className={cn("transition-all duration-300 hover:shadow-md", darkMode ? "text-gray-300 hover:bg-gray-700" : "")}
+                          className={cn("transition-all duration-300 hover:shadow-md hover:scale-105 rounded-xl", darkMode ? "text-gray-300 hover:bg-gray-700" : "")}
                         >
                           <X className="h-4 w-4 mr-2" />
                           Reset All
                         </Button>
                         <Button 
-                          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:shadow-md"
+                          className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 transition-all duration-300 hover:shadow-md hover:scale-105 rounded-xl"
                           onClick={() => setShowFilters(false)}
                         >
                           <Check className="h-4 w-4 mr-2" />
@@ -444,8 +444,8 @@ export const UserJobs = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
               <div className="flex items-center gap-4">
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className={cn("transition-all duration-300", darkMode ? "bg-gray-700" : "")}>
-                    <TabsTrigger value="all" className={cn("transition-colors duration-300", darkMode ? "data-[state=active]:bg-gray-600" : "")}>
+                  <TabsList className={cn("transition-all duration-300 rounded-xl", darkMode ? "bg-gray-700" : "")}>
+                    <TabsTrigger value="all" className={cn("transition-colors duration-300 rounded-xl", darkMode ? "data-[state=active]:bg-gray-600" : "")}>
                       <div className="flex items-center gap-2">
                         <Briefcase className="h-4 w-4" />
                         All Jobs
@@ -454,7 +454,7 @@ export const UserJobs = () => {
                         </Badge>
                   </div>
                     </TabsTrigger>
-                    <TabsTrigger value="saved" className={cn("transition-colors duration-300", darkMode ? "data-[state=active]:bg-gray-600" : "")}>
+                    <TabsTrigger value="saved" className={cn("transition-colors duration-300 rounded-xl", darkMode ? "data-[state=active]:bg-gray-600" : "")}>
                       <div className="flex items-center gap-2">
                         <Bookmark className="h-4 w-4" />
                         Saved Jobs
@@ -463,7 +463,7 @@ export const UserJobs = () => {
                         </Badge>
                   </div>
                     </TabsTrigger>
-                    <TabsTrigger value="applied" className={cn("transition-colors duration-300", darkMode ? "data-[state=active]:bg-gray-600" : "")}>
+                    <TabsTrigger value="applied" className={cn("transition-colors duration-300 rounded-xl", darkMode ? "data-[state=active]:bg-gray-600" : "")}>
                       <div className="flex items-center gap-2">
                         <GitPullRequest className="h-4 w-4" />
                         Applied
@@ -484,10 +484,10 @@ export const UserJobs = () => {
                    filteredJobs.length} jobs
                 </div>
                 <Select>
-                  <SelectTrigger className={cn("w-48 h-10 rounded-lg transition-all duration-300 focus:ring-2 focus:ring-blue-500", darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200")}>
+                  <SelectTrigger className={cn("w-48 h-10 rounded-xl transition-all duration-300 focus:ring-2 focus:ring-teal-500 focus:shadow-lg", darkMode ? "bg-gray-700 border-gray-600" : "bg-white border-gray-200")}>
                     <SelectValue placeholder="Sort by: Recommended" />
                   </SelectTrigger>
-                  <SelectContent className={darkMode ? "bg-gray-800 border-gray-700" : ""}>
+                  <SelectContent className={darkMode ? "bg-gray-800 border-gray-700 shadow-xl rounded-xl" : "shadow-xl rounded-xl"}>
                     <SelectItem value="recommended" className={darkMode ? "hover:bg-gray-700" : ""}>Recommended</SelectItem>
                     <SelectItem value="newest" className={darkMode ? "hover:bg-gray-700" : ""}>Newest First</SelectItem>
                     <SelectItem value="salary-high" className={darkMode ? "hover:bg-gray-700" : ""}>Salary: High to Low</SelectItem>
@@ -502,7 +502,7 @@ export const UserJobs = () => {
             {/* Application Tracker for Applied Tab */}
             {activeTab === 'applied' && (
               <div className="mb-8">
-                <Card className={cn("border-0 shadow-md transition-all duration-300 hover:shadow-lg", darkMode ? "bg-gray-800" : "bg-white/90")}>
+                <Card className={cn("border-0 shadow-md transition-all duration-300 hover:shadow-lg rounded-2xl", darkMode ? "bg-gray-800" : "bg-white/90")}>
                   <CardContent className="p-4">
                     <h3 className={cn("text-lg font-semibold mb-3", darkMode ? "text-white" : "text-gray-800")}>
                       Application Tracker
@@ -511,28 +511,28 @@ export const UserJobs = () => {
                       Track your job applications and their status.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 border border-blue-200 transition-all duration-300 hover:shadow-md">
-                        <Briefcase className="h-5 w-5 text-blue-600" />
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-teal-50 border border-teal-200 transition-all duration-300 hover:shadow-md hover:scale-105">
+                        <Briefcase className="h-5 w-5 text-teal-600" />
                         <div>
                           <p className="text-sm font-medium text-gray-700">Total Applications</p>
-                          <p className="text-lg font-bold text-blue-800">{appliedJobs.length}</p>
+                          <p className="text-lg font-bold text-teal-800">{appliedJobs.length}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200 transition-all duration-300 hover:shadow-md">
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-green-50 border border-green-200 transition-all duration-300 hover:shadow-md hover:scale-105">
                         <CheckCircle className="h-5 w-5 text-green-600" />
                         <div>
                           <p className="text-sm font-medium text-gray-700">Applications Submitted</p>
                           <p className="text-lg font-bold text-green-800">{appliedJobs.length}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-50 border border-yellow-200 transition-all duration-300 hover:shadow-md">
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-yellow-50 border border-yellow-200 transition-all duration-300 hover:shadow-md hover:scale-105">
                         <Clock className="h-5 w-5 text-yellow-600" />
                         <div>
                           <p className="text-sm font-medium text-gray-700">Average Response Time</p>
                           <p className="text-lg font-bold text-yellow-800">2-3 weeks</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 transition-all duration-300 hover:shadow-md">
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200 transition-all duration-300 hover:shadow-md hover:scale-105">
                         <AlertCircle className="h-5 w-5 text-red-600" />
                         <div>
                           <p className="text-sm font-medium text-gray-700">Rejections</p>
@@ -551,7 +551,7 @@ export const UserJobs = () => {
                 <Button 
                   variant="outline" 
                   onClick={() => setShowSalaryComparison(!showSalaryComparison)}
-                  className={cn("gap-2 transition-all duration-300 hover:shadow-md", darkMode ? "bg-gray-700 border-gray-600 hover:bg-gray-600" : "")}
+                  className={cn("gap-2 transition-all duration-300 hover:shadow-md hover:scale-105 rounded-xl", darkMode ? "bg-gray-700 border-gray-600 hover:bg-gray-600" : "")}
                 >
                   <BarChart className="h-4 w-4" />
                   {showSalaryComparison ? 'Hide Salary Comparison' : 'Show Salary Comparison'}
@@ -559,7 +559,7 @@ export const UserJobs = () => {
                 <Button 
                   variant="outline" 
                   onClick={() => setShowSkillsAnalysis(!showSkillsAnalysis)}
-                  className={cn("gap-2 transition-all duration-300 hover:shadow-md", darkMode ? "bg-gray-700 border-gray-600 hover:bg-gray-600" : "")}
+                  className={cn("gap-2 transition-all duration-300 hover:shadow-md hover:scale-105 rounded-xl", darkMode ? "bg-gray-700 border-gray-600 hover:bg-gray-600" : "")}
                 >
                   <Shield className="h-4 w-4" />
                   {showSkillsAnalysis ? 'Hide Skills Analysis' : 'Show Skills Analysis'}
@@ -570,7 +570,7 @@ export const UserJobs = () => {
             {/* Salary Comparison Chart */}
             {showSalaryComparison && activeTab !== 'applied' && (
               <div className="mb-8">
-                <Card className={cn("border-0 shadow-md transition-all duration-300 hover:shadow-lg", darkMode ? "bg-gray-800" : "bg-white/90")}>
+                <Card className={cn("border-0 shadow-md transition-all duration-300 hover:shadow-lg rounded-2xl", darkMode ? "bg-gray-800" : "bg-white/90")}>
                   <CardContent className="p-4">
                     <h3 className={cn("text-lg font-semibold mb-3", darkMode ? "text-white" : "text-gray-800")}>
                       Salary Comparison
@@ -579,28 +579,28 @@ export const UserJobs = () => {
                       Compare average salaries across different industries and experience levels.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 border border-blue-200 transition-all duration-300 hover:shadow-md">
-                        <Code className="h-5 w-5 text-blue-600" />
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-teal-50 border border-teal-200 transition-all duration-300 hover:shadow-md hover:scale-105">
+                        <Code className="h-5 w-5 text-teal-600" />
                         <div>
                           <p className="text-sm font-medium text-gray-700">Technology</p>
-                          <p className="text-lg font-bold text-blue-800">$120,000</p>
+                          <p className="text-lg font-bold text-teal-800">$120,000</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-purple-50 border border-purple-200 transition-all duration-300 hover:shadow-md">
-                        <DollarSign className="h-5 w-5 text-purple-600" />
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-cyan-50 border border-cyan-200 transition-all duration-300 hover:shadow-md hover:scale-105">
+                        <DollarSign className="h-5 w-5 text-cyan-600" />
                         <div>
                           <p className="text-sm font-medium text-gray-700">Finance</p>
-                          <p className="text-lg font-bold text-purple-800">$100,000</p>
+                          <p className="text-lg font-bold text-cyan-800">$100,000</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200 transition-all duration-300 hover:shadow-md">
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-green-50 border border-green-200 transition-all duration-300 hover:shadow-md hover:scale-105">
                         <HardHat className="h-5 w-5 text-green-600" />
                         <div>
                           <p className="text-sm font-medium text-gray-700">Healthcare</p>
                           <p className="text-lg font-bold text-green-800">$90,000</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 transition-all duration-300 hover:shadow-md">
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200 transition-all duration-300 hover:shadow-md hover:scale-105">
                         <Users className="h-5 w-5 text-red-600" />
                         <div>
                           <p className="text-sm font-medium text-gray-700">Education</p>
@@ -616,7 +616,7 @@ export const UserJobs = () => {
             {/* Skills Radar Chart */}
             {showSkillsAnalysis && activeTab !== 'applied' && (
               <div className="mb-8">
-                <Card className={cn("border-0 shadow-md transition-all duration-300 hover:shadow-lg", darkMode ? "bg-gray-800" : "bg-white/90")}>
+                <Card className={cn("border-0 shadow-md transition-all duration-300 hover:shadow-lg rounded-2xl", darkMode ? "bg-gray-800" : "bg-white/90")}>
                   <CardContent className="p-4">
                     <h3 className={cn("text-lg font-semibold mb-3", darkMode ? "text-white" : "text-gray-800")}>
                       Skills Analysis
@@ -625,28 +625,28 @@ export const UserJobs = () => {
                       Visualize your skills against common job requirements.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-50 border border-yellow-200 transition-all duration-300 hover:shadow-md">
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-yellow-50 border border-yellow-200 transition-all duration-300 hover:shadow-md hover:scale-105">
                         <Code className="h-5 w-5 text-yellow-600" />
                         <div>
                           <p className="text-sm font-medium text-gray-700">Frontend</p>
                           <p className="text-lg font-bold text-yellow-800">85%</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 border border-blue-200 transition-all duration-300 hover:shadow-md">
-                        <Database className="h-5 w-5 text-blue-600" />
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-teal-50 border border-teal-200 transition-all duration-300 hover:shadow-md hover:scale-105">
+                        <Database className="h-5 w-5 text-teal-600" />
                         <div>
                           <p className="text-sm font-medium text-gray-700">Backend</p>
-                          <p className="text-lg font-bold text-blue-800">75%</p>
+                          <p className="text-lg font-bold text-teal-800">75%</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-purple-50 border border-purple-200 transition-all duration-300 hover:shadow-md">
-                        <Cpu className="h-5 w-5 text-purple-600" />
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-cyan-50 border border-cyan-200 transition-all duration-300 hover:shadow-md hover:scale-105">
+                        <Cpu className="h-5 w-5 text-cyan-600" />
                         <div>
                           <p className="text-sm font-medium text-gray-700">DevOps</p>
-                          <p className="text-lg font-bold text-purple-800">65%</p>
+                          <p className="text-lg font-bold text-cyan-800">65%</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200 transition-all duration-300 hover:shadow-md">
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-green-50 border border-green-200 transition-all duration-300 hover:shadow-md hover:scale-105">
                         <Smartphone className="h-5 w-5 text-green-600" />
                         <div>
                           <p className="text-sm font-medium text-gray-700">Mobile</p>
@@ -688,8 +688,8 @@ export const UserJobs = () => {
                   <Card 
                     key={job._id} 
                     className={cn(
-                      "transition-all duration-300 group shadow-md hover:shadow-xl",
-                      darkMode ? "bg-gray-800 border-gray-700 hover:border-gray-600" : "hover:border-blue-300"
+                      "transition-all duration-300 group shadow-md hover:shadow-xl rounded-2xl",
+                      darkMode ? "bg-gray-800 border-gray-700 hover:border-gray-600" : "hover:border-teal-300"
                     )}
                   >
                     <CardContent className="p-6">
@@ -709,7 +709,7 @@ export const UserJobs = () => {
                             <div>
                               <h3 className={cn(
                                 "text-xl font-semibold transition-colors duration-300",
-                                darkMode ? "group-hover:text-blue-400" : "group-hover:text-blue-600"
+                                darkMode ? "group-hover:text-teal-400" : "group-hover:text-teal-600"
                               )}>
                                 {job.title}
                               </h3>
@@ -718,7 +718,7 @@ export const UserJobs = () => {
                             <div className="flex items-center gap-2">
                               <Badge 
                                 variant="secondary" 
-                                className={darkMode ? "bg-blue-900 text-blue-200" : "bg-blue-100 text-blue-800"}
+                                className={darkMode ? "bg-teal-900 text-teal-200" : "bg-teal-100 text-teal-800"}
                               >
                                 {job.type}
                               </Badge>
@@ -729,7 +729,7 @@ export const UserJobs = () => {
                                       variant="ghost" 
                                       size="icon" 
                                       onClick={() => toggleSavedJob(job._id)}
-                                      className="rounded-full transition-all duration-300 hover:bg-gray-200/50 dark:hover:bg-gray-700"
+                                      className="rounded-full transition-all duration-300 hover:bg-gray-200/50 dark:hover:bg-gray-700 hover:scale-105"
                                     >
                                       <Heart 
                                         className={cn(
@@ -750,7 +750,7 @@ export const UserJobs = () => {
                                       variant="ghost" 
                                       size="icon" 
                                       onClick={() => shareJob({ _id: job._id!, title: job.title, company: job.company })}
-                                      className="rounded-full transition-all duration-300 hover:bg-gray-200/50 dark:hover:bg-gray-700"
+                                      className="rounded-full transition-all duration-300 hover:bg-gray-200/50 dark:hover:bg-gray-700 hover:scale-105"
                                     >
                                       <Share2 className={cn("h-5 w-5", darkMode ? "text-gray-400" : "text-gray-400")} />
                                     </Button>
@@ -764,28 +764,28 @@ export const UserJobs = () => {
                           </div>
                           
                           <div className="flex flex-wrap items-center gap-2 mb-4">
-                            <Badge variant="outline" className={cn("flex items-center gap-1 transition-colors duration-300", darkMode ? "border-gray-700 bg-gray-700" : "")}>
+                            <Badge variant="outline" className={cn("flex items-center gap-1 transition-colors duration-300 rounded-xl", darkMode ? "border-gray-700 bg-gray-700" : "")}>
                               <MapPin className="h-3 w-3" />
                               {job.location}
                             </Badge>
-                            <Badge variant="outline" className={cn("flex items-center gap-1 transition-colors duration-300", darkMode ? "border-gray-700 bg-gray-700" : "")}>
+                            <Badge variant="outline" className={cn("flex items-center gap-1 transition-colors duration-300 rounded-xl", darkMode ? "border-gray-700 bg-gray-700" : "")}>
                               <DollarSign className="h-3 w-3" />
                               {job.salary}
                           </Badge>
                             {job.isRemote && (
-                              <Badge variant="outline" className={cn("transition-colors duration-300", darkMode ? "bg-green-900/30 text-green-400 border-green-800" : "bg-green-50 text-green-700")}>
+                              <Badge variant="outline" className={cn("transition-colors duration-300 rounded-xl", darkMode ? "bg-green-900/30 text-green-400 border-green-800" : "bg-green-50 text-green-700")}>
                                 <Globe className="h-3 w-3" />
                                 Remote
                               </Badge>
                             )}
                             {job.isUrgent && (
-                              <Badge variant="outline" className={cn("transition-colors duration-300", darkMode ? "bg-red-900/30 text-red-400 border-red-800" : "bg-red-50 text-red-700")}>
+                              <Badge variant="outline" className={cn("transition-colors duration-300 rounded-xl", darkMode ? "bg-red-900/30 text-red-400 border-red-800" : "bg-red-50 text-red-700")}>
                                 <Zap className="h-3 w-3" />
                                 Urgent
                               </Badge>
                             )}
                             {job.experienceLevel && (
-                              <Badge variant="outline" className={cn("transition-colors duration-300", darkMode ? "bg-purple-900/30 text-purple-400 border-purple-800" : "bg-purple-50 text-purple-700")}>
+                              <Badge variant="outline" className={cn("transition-colors duration-300 rounded-xl", darkMode ? "bg-purple-900/30 text-purple-400 border-purple-800" : "bg-purple-50 text-purple-700")}>
                                 <Award className="h-3 w-3" />
                                 {job.experienceLevel}
                               </Badge>
@@ -798,7 +798,7 @@ export const UserJobs = () => {
                           
                           {/* Company Culture & Benefits Preview */}
                           {Array.isArray(job.benefits) && job.benefits.length > 0 && (
-                            <Card className={cn("border-0 shadow-sm transition-all duration-300", darkMode ? "bg-gray-800" : "bg-white/90")}>
+                            <Card className={cn("border-0 shadow-sm transition-all duration-300 rounded-2xl", darkMode ? "bg-gray-800" : "bg-white/90")}>
                               <CardContent className="p-4">
                                 <h3 className={cn("text-lg font-semibold mb-3", darkMode ? "text-white" : "text-gray-800")}>
                                   Company Culture & Benefits
@@ -812,7 +812,7 @@ export const UserJobs = () => {
                                       key={index} 
                                       variant="outline" 
                                       className={cn(
-                                        "flex items-center gap-1 transition-colors duration-300",
+                                        "flex items-center gap-1 transition-colors duration-300 rounded-xl",
                                         darkMode ? "border-gray-700 bg-gray-700" : ""
                                       )}
                                     >
@@ -840,7 +840,7 @@ export const UserJobs = () => {
                               {appliedJobs.includes(job._id) ? (
                                 <Button 
                                   variant="outline" 
-                                  className={cn("gap-2 transition-all duration-300 hover:shadow-md", darkMode ? "border-green-700 text-green-400" : "border-green-200 text-green-700")}
+                                  className={cn("gap-2 transition-all duration-300 hover:shadow-md hover:scale-105 rounded-xl", darkMode ? "border-green-700 text-green-400" : "border-green-200 text-green-700")}
                                 >
                                   <Check className="h-4 w-4" />
                                   Applied
@@ -848,7 +848,7 @@ export const UserJobs = () => {
                               ) : (
                           <Button 
                                   onClick={() => applyToJob(job._id)}
-                                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg gap-2 transition-all duration-300 hover:shadow-md hover:scale-105"
+                                  className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white rounded-xl gap-2 transition-all duration-300 hover:shadow-md hover:scale-105"
                           >
                             Apply Now
                                   <ArrowRight className="h-4 w-4" />
@@ -866,7 +866,7 @@ export const UserJobs = () => {
 
             {/* No Results */}
             {currentJobs.length === 0 && (
-              <Card className={cn("text-center py-16 shadow-md", darkMode ? "bg-gray-800 border-gray-700" : "bg-white/90")}>
+              <Card className={cn("text-center py-16 shadow-md rounded-2xl", darkMode ? "bg-gray-800 border-gray-700" : "bg-white/90")}>
                 <CardContent>
                   <div className={cn("p-4 rounded-full mx-auto mb-6 flex items-center justify-center transition-all duration-300", darkMode ? "bg-gray-700" : "bg-gray-100")}>
                     <Briefcase className={cn("h-8 w-8", darkMode ? "text-gray-400" : "text-gray-400")} />
@@ -897,7 +897,7 @@ export const UserJobs = () => {
                         setExperienceFilter('all');
                         setSalaryRange([50000]);
                       }}
-                        className={cn("gap-2 transition-all duration-300 hover:shadow-md hover:scale-105", darkMode ? "border-gray-600 hover:bg-gray-700" : "")}
+                        className={cn("gap-2 transition-all duration-300 hover:shadow-md hover:scale-105 rounded-xl", darkMode ? "border-gray-600 hover:bg-gray-700" : "")}
                       >
                         <X className="h-4 w-4" />
                         Clear Filters
@@ -905,7 +905,7 @@ export const UserJobs = () => {
                       <Button 
                         variant="default"
                         onClick={() => setActiveTab('all')}
-                        className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-300 hover:shadow-md hover:scale-105"
+                        className="gap-2 bg-gradient-to-r from-teal-600 to-cyan-600 transition-all duration-300 hover:shadow-md hover:scale-105 rounded-xl"
                       >
                         <Briefcase className="h-4 w-4" />
                         Browse All Jobs
@@ -916,7 +916,7 @@ export const UserJobs = () => {
                     <Button 
                       variant="default"
                       onClick={() => setActiveTab('all')}
-                      className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-300 hover:shadow-md hover:scale-105"
+                      className="gap-2 bg-gradient-to-r from-teal-600 to-cyan-600 transition-all duration-300 hover:shadow-md hover:scale-105 rounded-xl"
                     >
                       <Briefcase className="h-4 w-4" />
                       Browse Jobs
@@ -926,7 +926,7 @@ export const UserJobs = () => {
                     <Button 
                       variant="default"
                       onClick={() => setActiveTab('all')}
-                      className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-300 hover:shadow-md hover:scale-105"
+                      className="gap-2 bg-gradient-to-r from-teal-600 to-cyan-600 transition-all duration-300 hover:shadow-md hover:scale-105 rounded-xl"
                     >
                       <Briefcase className="h-4 w-4" />
                       Find Jobs to Apply
@@ -947,7 +947,7 @@ export const UserJobs = () => {
                         size="sm"
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
-                        className={cn("transition-all duration-300 hover:shadow-md", darkMode ? "border-gray-600 hover:bg-gray-700" : "")}
+                        className={cn("transition-all duration-300 hover:shadow-md hover:scale-105 rounded-xl", darkMode ? "border-gray-600 hover:bg-gray-700" : "")}
                       >
                         <ChevronLeft className="h-4 w-4" />
                       </Button>
@@ -972,9 +972,9 @@ export const UserJobs = () => {
                             size="sm"
                             onClick={() => setCurrentPage(pageNum)}
                             className={cn(
-                              "transition-all duration-300 hover:shadow-md",
+                              "transition-all duration-300 hover:shadow-md hover:scale-105 rounded-xl",
                               currentPage !== pageNum && darkMode ? "border-gray-600 hover:bg-gray-700" : "",
-                              currentPage === pageNum ? "bg-gradient-to-r from-blue-600 to-purple-600" : ""
+                              currentPage === pageNum ? "bg-gradient-to-r from-teal-600 to-cyan-600" : ""
                             )}
                           >
                             {pageNum}
@@ -995,7 +995,7 @@ export const UserJobs = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => setCurrentPage(totalPages)}
-                          className={cn("transition-all duration-300 hover:shadow-md", darkMode ? "border-gray-600 hover:bg-gray-700" : "")}
+                          className={cn("transition-all duration-300 hover:shadow-md hover:scale-105 rounded-xl", darkMode ? "border-gray-600 hover:bg-gray-700" : "")}
                         >
                           {totalPages}
                         </Button>
@@ -1008,7 +1008,7 @@ export const UserJobs = () => {
                         size="sm"
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                         disabled={currentPage === totalPages}
-                        className={cn("transition-all duration-300 hover:shadow-md", darkMode ? "border-gray-600 hover:bg-gray-700" : "")}
+                        className={cn("transition-all duration-300 hover:shadow-md hover:scale-105 rounded-xl", darkMode ? "border-gray-600 hover:bg-gray-700" : "")}
                       >
                         <ChevronRight className="h-4 w-4" />
                       </Button>

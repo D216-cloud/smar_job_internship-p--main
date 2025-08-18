@@ -404,21 +404,22 @@ router.put('/:id/status', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
-    
+    const mongoose = require('mongoose');
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      console.error('Invalid application id:', id);
+      return res.status(400).json({ error: 'Invalid application id' });
+    }
     console.log(`Updating application ${id} status to: ${status}`);
     console.log('Request user:', req.user);
-    
     const application = await Application.findByIdAndUpdate(
       id, 
       { status }, 
       { new: true }
     ).populate('jobId', 'title company location type salary');
-    
     if (!application) {
       console.log('Application not found:', id);
       return res.status(404).json({ error: 'Application not found' });
     }
-    
     console.log('Application updated successfully:', application._id, 'New status:', application.status);
     res.json(application);
   } catch (err) {

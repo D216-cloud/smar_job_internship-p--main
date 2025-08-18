@@ -233,7 +233,6 @@ Feel free to ask me anything or use the quick questions below! 🚀`,
   }, [messages]);
 
   const handleSmartQuestion = (questionData: typeof smartQuestions[0]) => {
-    // Add user question
     const userMessage: Message = {
       id: Date.now().toString(),
       content: questionData.question,
@@ -241,7 +240,6 @@ Feel free to ask me anything or use the quick questions below! 🚀`,
       timestamp: new Date().toISOString()
     };
 
-    // Get predefined answer
     const answer = projectKnowledge[questionData.question as keyof typeof projectKnowledge];
     const assistantMessage: Message = {
       id: (Date.now() + 1).toString(),
@@ -329,51 +327,53 @@ Feel free to ask me anything or use the quick questions below! 🚀`,
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-gray-900 dark:to-indigo-950">
       {/* Header */}
-      <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-700 bg-white/80 backdrop-blur-sm dark:bg-gray-900/80">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
-              <Bot className="h-4 w-4 text-white" />
+      <div className="flex-shrink-0 border-b border-gray-200/60 dark:border-gray-700/60 bg-white/80 backdrop-blur-md dark:bg-gray-900/80 shadow-sm">
+        <div className="max-w-4xl mx-auto px-5 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
+              <Bot className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">SmartHire AI</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Powered by DeepSeek • Always ready to help</p>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">SmartHire AI</h1>
+              <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                Powered by DeepSeek • Instant answers
+              </p>
             </div>
           </div>
           
           <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
             <DialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800">
-                <Settings className="h-4 w-4" />
+              <Button variant="ghost" size="sm" className="h-10 w-10 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all">
+                <Settings className="h-5 w-5 text-gray-600 dark:text-gray-300" />
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>Chat Settings</DialogTitle>
+                <DialogTitle className="text-lg font-semibold text-gray-800 dark:text-white">Chat Settings</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
-                  <Label htmlFor="apiKey">Custom API Key (Optional)</Label>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Key className="h-4 w-4 text-gray-500" />
+                  <Label htmlFor="apiKey" className="text-sm font-medium text-gray-700 dark:text-gray-300">Custom API Key (Optional)</Label>
+                  <div className="flex items-center gap-3 mt-2">
+                    <Key className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                     <Input
                       id="apiKey"
                       type="password"
                       placeholder="sk-or-v1-..."
                       value={apiKey}
                       onChange={(e) => setApiKey(e.target.value)}
-                      className="flex-1"
+                      className="flex-1 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
                     />
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Leave blank to use default API key
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Leave blank to use default settings
                   </p>
                 </div>
                 <Button 
                   onClick={() => setIsSettingsOpen(false)}
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
                 >
                   Save Settings
                 </Button>
@@ -386,68 +386,70 @@ Feel free to ask me anything or use the quick questions below! 🚀`,
       {/* Messages Area */}
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full">
-          <div className="p-4 space-y-4">
+          <div className="p-5 space-y-6">
             {/* Smart Questions Section */}
             {showSmartQuestions && messages.length <= 1 && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mx-auto max-w-4xl">
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="w-5 h-5 text-blue-600" />
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Smart Questions about SmartHire
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700/50 p-7 mx-auto max-w-4xl transform transition-all duration-300 hover:shadow-2xl">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/60">
+                    <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-300" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Frequently Asked Questions
                   </h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {smartQuestions.map((q, index) => {
                     const IconComponent = q.icon;
                     return (
                       <button
                         key={index}
                         onClick={() => handleSmartQuestion(q)}
-                        className="group flex items-start gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 
-                          dark:from-gray-800 dark:to-gray-700 rounded-xl border border-blue-100 
-                          dark:border-gray-600 hover:from-blue-100 hover:to-indigo-100 
-                          dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200 
-                          hover:shadow-md hover:scale-[1.02] text-left"
+                        className="group flex items-start gap-4 p-5 rounded-xl border border-blue-100 dark:border-gray-700/60 
+                          bg-gradient-to-b from-blue-50 to-transparent dark:from-gray-800 dark:to-transparent 
+                          hover:from-blue-100 hover:to-blue-50 dark:hover:from-gray-700 dark:hover:to-gray-700 
+                          transition-all duration-200 hover:shadow-lg hover:scale-[1.03] text-left 
+                          hover:border-blue-200 dark:hover:border-blue-600"
                       >
-                        <div className="flex-shrink-0 p-2 bg-blue-100 dark:bg-blue-900 rounded-lg 
+                        <div className="flex-shrink-0 p-3 rounded-xl bg-blue-100 dark:bg-blue-900/50 
                           group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
-                          <IconComponent className="w-4 h-4 text-blue-600 dark:text-blue-300" />
+                          <IconComponent className="w-5 h-5 text-blue-600 dark:text-blue-300" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-900 dark:text-white text-sm mb-1 
-                            group-hover:text-blue-700 dark:group-hover:text-blue-300">
+                          <h4 className="font-semibold text-gray-800 dark:text-gray-100 text-sm mb-1.5 
+                            group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
                             {q.category}
                           </h4>
-                          <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
+                          <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed">
                             {q.preview}
                           </p>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 
-                          dark:group-hover:text-blue-300 flex-shrink-0 mt-1" />
+                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 
+                          dark:group-hover:text-blue-300 flex-shrink-0 mt-1 transition-colors" />
                       </button>
                     );
                   })}
                 </div>
                 <button
                   onClick={() => setShowSmartQuestions(false)}
-                  className="mt-4 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 
-                    dark:hover:text-gray-200 flex items-center gap-2"
+                  className="mt-5 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 
+                    dark:hover:text-gray-200 flex items-center gap-2 transition-colors"
                 >
                   <X className="w-4 h-4" />
-                  Hide smart questions
+                  Hide suggestions
                 </button>
               </div>
             )}
 
-            {/* Smart Questions Toggle Button - Show when hidden */}
+            {/* Toggle Button */}
             {!showSmartQuestions && (
               <div className="mx-auto max-w-4xl">
                 <button
                   onClick={() => setShowSmartQuestions(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900 
-                    text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 
-                    dark:hover:bg-blue-800 transition-colors border border-blue-200 
-                    dark:border-blue-700 text-sm"
+                  className="flex items-center gap-2.5 px-5 py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 
+                    dark:from-gray-800 dark:to-gray-700 text-blue-700 dark:text-blue-300 rounded-xl 
+                    hover:from-blue-100 hover:to-indigo-100 dark:hover:from-gray-700 dark:hover:to-gray-600 
+                    transition-all duration-200 text-sm font-medium border border-blue-200 dark:border-blue-700"
                 >
                   <Sparkles className="w-4 h-4" />
                   Show Smart Questions
@@ -459,27 +461,27 @@ Feel free to ask me anything or use the quick questions below! 🚀`,
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex items-start gap-3 max-w-4xl mx-auto ${
+                className={`flex items-start gap-3.5 max-w-4xl mx-auto ${
                   message.role === 'user' ? 'justify-end' : 'justify-start'
-                } animate-in slide-in-from-bottom-2 duration-300`}
+                } animate-in slide-in-from-bottom-4 duration-500`}
               >
                 {message.role === 'assistant' && (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <Bot className="h-4 w-4 text-white" />
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <Bot className="h-5 w-5 text-white" />
                   </div>
                 )}
                 
-                <div className={`max-w-[85%] sm:max-w-[70%] ${message.role === 'user' ? 'order-1' : ''}`}>
+                <div className={`max-w-[80%] sm:max-w-[70%] ${message.role === 'user' ? 'order-1' : ''}`}>
                   <div
-                    className={`rounded-2xl px-4 py-3 shadow-sm ${
+                    className={`rounded-2xl px-5 py-4 shadow-md ${
                       message.role === 'user'
                         ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
                         : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white'
                     }`}
                   >
-                    <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
+                    <div className="whitespace-pre-wrap leading-relaxed text-sm">{message.content}</div>
                   </div>
-                  <div className={`text-xs text-gray-500 dark:text-gray-400 mt-1 ${
+                  <div className={`text-xs text-gray-500 dark:text-gray-400 mt-1.5 ${
                     message.role === 'user' ? 'text-right' : 'text-left'
                   }`}>
                     {formatTime(message.timestamp)}
@@ -487,23 +489,23 @@ Feel free to ask me anything or use the quick questions below! 🚀`,
                 </div>
 
                 {message.role === 'user' && (
-                  <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0 order-2 shadow-sm">
-                    <User className="h-4 w-4 text-white" />
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-r from-gray-600 to-gray-700 flex items-center justify-center flex-shrink-0 order-2 shadow-lg">
+                    <User className="h-5 w-5 text-white" />
                   </div>
                 )}
               </div>
             ))}
             
             {isLoading && (
-              <div className="flex items-start gap-3 max-w-4xl mx-auto animate-in slide-in-from-bottom-2 duration-300">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-sm">
-                  <Bot className="h-4 w-4 text-white" />
+              <div className="flex items-start gap-3.5 max-w-4xl mx-auto animate-in slide-in-from-bottom-4 duration-500">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                  <Bot className="h-5 w-5 text-white" />
                 </div>
-                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl px-4 py-3 shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl px-5 py-4 shadow-md">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce"></div>
+                    <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 </div>
               </div>
@@ -514,23 +516,25 @@ Feel free to ask me anything or use the quick questions below! 🚀`,
       </div>
 
       {/* Input Area */}
-      <div className="flex-shrink-0 p-4 bg-white/80 backdrop-blur-sm border-t border-gray-200/50 dark:bg-gray-900/80 dark:border-gray-700/50">
+      <div className="flex-shrink-0 p-5 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-t border-gray-200/50 dark:border-gray-700/50">
         <div className="max-w-4xl mx-auto">
-          <div className="flex gap-3 items-end">
+          <div className="flex gap-4 items-end">
             <div className="flex-1 relative">
               <Textarea
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask me anything about SmartHire or your career..."
-                className="min-h-[52px] max-h-[120px] resize-none border-gray-300 dark:border-gray-600 
+                placeholder="Ask me anything about SmartHire, your resume, or career path..."
+                className="min-h-[60px] max-h-[140px] resize-none border-gray-300 dark:border-gray-600 
                   focus:border-blue-500 focus:ring-blue-500 dark:focus:border-blue-400 
-                  dark:focus:ring-blue-400 rounded-xl shadow-sm pr-12 bg-white dark:bg-gray-800 
-                  text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  dark:focus:ring-blue-400 rounded-2xl shadow-lg pr-16 pl-4 pt-3 pb-8 
+                  bg-white dark:bg-gray-800 text-gray-900 dark:text-white 
+                  placeholder-gray-500 dark:placeholder-gray-400 
+                  transition-all duration-200 hover:shadow-xl"
                 disabled={isLoading}
               />
               {inputMessage.length > 0 && (
-                <div className="absolute right-3 bottom-3 text-xs text-gray-400 dark:text-gray-500">
+                <div className="absolute right-4 bottom-3 text-xs text-gray-400 dark:text-gray-500">
                   Press Enter to send
                 </div>
               )}
@@ -538,9 +542,9 @@ Feel free to ask me anything or use the quick questions below! 🚀`,
             <Button
               onClick={sendMessage}
               disabled={!inputMessage.trim() || isLoading}
-              className="h-[52px] w-[52px] rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 
+              className="h-[60px] w-[60px] rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 
                 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 
-                shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+                shadow-xl hover:shadow-2xl transition-all duration-200 flex items-center justify-center"
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin text-white" />
@@ -549,8 +553,8 @@ Feel free to ask me anything or use the quick questions below! 🚀`,
               )}
             </Button>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
-            Press Enter to send • Shift+Enter for new line • Powered by DeepSeek
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center font-medium">
+            Press Enter to send • Shift+Enter for new line • Powered by DeepSeek AI
           </p>
         </div>
       </div>
