@@ -1,10 +1,9 @@
 const axios = require('axios');
 
 function getDeepseekConfig(customApiKey = null) {
-  const key = customApiKey || process.env.DEEPSEEK_API_KEY || '';
-  const isOpenRouter = key.startsWith('sk-or-');
+  const key = customApiKey || process.env.OPENROUTER_API_KEY || '';
   if (!key) return { ok: false, reason: 'missing-key' };
-  if (isOpenRouter) {
+  if (key.startsWith('sk-or-')) {
     return {
       ok: true,
       provider: 'openrouter',
