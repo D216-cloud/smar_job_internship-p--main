@@ -1,8 +1,8 @@
 import { toast } from '@/hooks/use-toast';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('token');
-  
   if (!token) {
     toast({
       title: "Authentication Error",
@@ -11,9 +11,10 @@ export const makeAuthenticatedRequest = async (url: string, options: RequestInit
     });
     throw new Error('No authentication token found');
   }
-
   try {
-    const response = await fetch(url, {
+    // If url is relative, prepend API_BASE_URL
+    const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+    const response = await fetch(fullUrl, {
       ...options,
       headers: {
         ...options.headers,
