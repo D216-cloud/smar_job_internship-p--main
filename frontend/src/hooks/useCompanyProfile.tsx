@@ -70,7 +70,7 @@ export const useCompanyProfile = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/company-profile', {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/company-profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -93,7 +93,7 @@ export const useCompanyProfile = () => {
   const fetchCompletion = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/company-profile/completion', {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/company-profile/completion`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -113,7 +113,7 @@ export const useCompanyProfile = () => {
     try {
       setSaving(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/company-profile', {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/company-profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -151,7 +151,7 @@ export const useCompanyProfile = () => {
   const incrementApplications = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/company-profile/increment-applications', {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/company-profile/increment-applications`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

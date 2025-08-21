@@ -185,7 +185,7 @@ export const UserDashboard = () => {
   useEffect(() => {
     const userId = user?._id || user?.id;
     if (userId) {
-      fetch(`/api/applications/user/${userId}`, {
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/applications/user/${userId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       })
         .then(res => res.json())
@@ -204,7 +204,7 @@ export const UserDashboard = () => {
 
   useEffect(() => {
     if (user?._id) {
-      fetch(`/api/jobs/user/${user._id}`)
+  fetch(`${import.meta.env.VITE_API_BASE_URL}/api/jobs/user/${user._id}`)
         .then(res => res.json())
         .then(data => setUserJobs(data));
     }

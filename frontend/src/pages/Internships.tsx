@@ -66,7 +66,7 @@ export const Internships = () => {
   useEffect(() => {
     const fetchInternships = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/internships');
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/internships`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

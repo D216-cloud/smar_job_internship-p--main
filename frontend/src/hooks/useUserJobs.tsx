@@ -32,7 +32,7 @@ export const useUserJobs = (userId: string) => {
 
   const migrateExistingJobs = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/migrate-jobs', {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/migrate-jobs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ export const useUserJobs = (userId: string) => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`http://localhost:5000/api/jobs/user/${userId}`, {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/jobs/user/${userId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

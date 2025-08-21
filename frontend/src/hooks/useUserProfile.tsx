@@ -131,7 +131,7 @@ export const useUserProfile = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/user-profile', {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -154,7 +154,7 @@ export const useUserProfile = () => {
   const fetchCompletion = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/user-profile/completion', {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/completion`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -174,7 +174,7 @@ export const useUserProfile = () => {
     try {
       setSaving(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/user-profile/personal-info', {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/personal-info`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -213,7 +213,7 @@ export const useUserProfile = () => {
     try {
       setSaving(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/user-profile/professional-bio', {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/professional-bio`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -252,7 +252,7 @@ export const useUserProfile = () => {
     try {
       setSaving(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/user-profile/skills', {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/skills`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -291,7 +291,7 @@ export const useUserProfile = () => {
     try {
       setSaving(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/user-profile/resume', {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/resume`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -330,7 +330,7 @@ export const useUserProfile = () => {
     try {
       setSaving(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/user-profile/social-links', {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/social-links`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -369,7 +369,7 @@ export const useUserProfile = () => {
     try {
       setSaving(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/user-profile/education', {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/education`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -408,7 +408,7 @@ export const useUserProfile = () => {
     try {
       setSaving(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/user-profile/experience', {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/experience`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

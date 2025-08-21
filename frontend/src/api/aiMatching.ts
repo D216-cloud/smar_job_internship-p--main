@@ -1,4 +1,5 @@
 // Minimal frontend helper to call AI matching endpoint
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export async function matchResumeToJob(params: {
   token: string;
   userId: string;
@@ -6,7 +7,7 @@ export async function matchResumeToJob(params: {
   engine?: 'gemini' | 'fallback';
   debug?: boolean;
 }) {
-  const res = await fetch('/api/ai-matching/match', {
+  const res = await fetch(`${API_BASE_URL}/api/ai-matching/match`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

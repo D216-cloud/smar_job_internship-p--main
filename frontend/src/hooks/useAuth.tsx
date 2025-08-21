@@ -2,13 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { jwtDecode, JwtPayload } from "jwt-decode";
-
-interface UserData {
-  _id: string;
-  email: string;
-  type?: string;
-  role?: string;
-}
+import { UserData, AuthContextType } from '@/types/auth';
 
 interface RegisterData {
   firstName: string;
@@ -20,7 +14,7 @@ interface RegisterData {
   [key: string]: string | undefined;
 }
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userType, setUserType] = useState<string | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);

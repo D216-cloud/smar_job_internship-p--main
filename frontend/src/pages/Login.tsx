@@ -67,9 +67,9 @@ const Login = () => {
           description: 'Welcome back!', 
           duration: 1500 
         });
-        if (user.role === 'user') {
+        if (user.data && user.data.role === 'user') {
           navigate('/user/home');
-        } else if (user.role === 'company') {
+        } else if (user.data && user.data.role === 'company') {
           navigate('/company/home');
         }
       } else {
@@ -115,7 +115,9 @@ const Login = () => {
     }
     setIsLoading(true);
     setTimeout(async () => {
-      const success = await register(registerData, userTypeSelection);
+      // Exclude agreeToTerms before passing to register
+      const { agreeToTerms, ...userDataForRegister } = registerData;
+      const success = await register(userDataForRegister, userTypeSelection);
       if (!success) {
         toast({ 
           title: 'Registration Failed', 
@@ -147,7 +149,7 @@ const Login = () => {
       if (user) {
         toast({
           title: `Automated Login Success (${test.role})`,
-          description: `Logged in as ${user.email}`,
+          description: `Logged in as ${user.data?.email}`,
           duration: 2000,
         });
       } else {

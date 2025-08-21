@@ -24,7 +24,7 @@ const Jobs = () => {
 
   const fetchJobs = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/jobs');
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/jobs`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -48,7 +48,7 @@ const Jobs = () => {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/jobs/${id}`, { method: 'DELETE' });
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/jobs/${id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete job');
       // Remove the deleted job from the UI
       setJobs(jobs => jobs.filter(job => job._id !== id));

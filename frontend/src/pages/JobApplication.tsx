@@ -186,7 +186,7 @@ const JobApplication = () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
-        const res = await fetch('/api/resume/current', {
+  const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/resume/current`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) return;
@@ -289,7 +289,7 @@ const JobApplication = () => {
       try {
         const fd = new FormData();
         fd.append('resume', formData.resume);
-        const uploadRes = await fetch('/api/resume/upload', {
+  const uploadRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/resume/upload`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: fd,
@@ -336,7 +336,7 @@ const JobApplication = () => {
     };
     
     try {
-      const res = await fetch('/api/applications/apply', {
+  const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/applications/apply`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

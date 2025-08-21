@@ -44,8 +44,8 @@ const PostJob = () => {
     if (userData) {
       setJobData(prev => ({
         ...prev,
-        companyId: userData.companyId || prev.companyId,
-        company: userData.companyName || prev.company
+        companyId: (userData?.companyId as string) || prev.companyId,
+        company: (userData?.companyName as string) || prev.company
       }));
     }
   }, [userData]);
@@ -93,7 +93,7 @@ const PostJob = () => {
       uploadedFiles.documents.forEach((doc, index) => {
         formData.append(`documents[${index}]`, doc);
       });
-      const response = await fetch('/api/jobs', {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/jobs`, {
         method: 'POST',
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {})
@@ -112,7 +112,7 @@ const PostJob = () => {
       toast({ title: 'Success', description: 'Job posted successfully!', variant: 'default' });
       setJobData({
         title: '',
-        company: userData?.companyName || '',
+        company: (userData?.companyName as string) || '',
         location: '',
         type: '',
         postingType: '',
@@ -128,7 +128,7 @@ const PostJob = () => {
         applicationDeadline: '',
         applicationInstructions: '',
         isUrgent: 'false',
-        companyId: userData?.companyId || ''
+        companyId: (userData?.companyId as string) || ''
       });
       setUploadedFiles({ logo: null, documents: [] });
     } catch (err) {

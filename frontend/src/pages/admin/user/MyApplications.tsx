@@ -63,7 +63,7 @@ const MyApplications = () => {
     if (!userId) return;
 
     setLoading(true);
-    fetch(`/api/applications/user/${userId}`, {
+  fetch(`${import.meta.env.VITE_API_BASE_URL}/api/applications/user/${userId}`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
       .then(res => res.ok ? res.json() : Promise.reject(`HTTP ${res.status}`))

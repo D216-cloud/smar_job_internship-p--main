@@ -145,8 +145,8 @@ const UserProfile = () => {
 
         // Fetch both endpoints in parallel to reduce TTFB
         const [authRes, profileRes] = await Promise.all([
-          fetch('/api/auth/profile', { headers }),
-          fetch('/api/user-profile/', { headers })
+          fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`, { headers }),
+          fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/`, { headers })
         ]);
 
         let user = {} as Record<string, unknown>;
@@ -190,12 +190,12 @@ const UserProfile = () => {
           phone: combinedData.phone || '',
           location: combinedData.location || '',
           bio: combinedData.bio || '',
-          skills: combinedData.skills || '',
-          avatar: combinedData.avatar || '',
+          skills: typeof combinedData.skills === 'string' ? combinedData.skills : (combinedData.skills ?? '').toString(),
+          avatar: typeof combinedData.avatar === 'string' ? combinedData.avatar : (combinedData.avatar ?? '').toString(),
           linkedin: combinedData.linkedin || '',
           github: combinedData.github || '',
           website: combinedData.website || '',
-          resume: combinedData.resume || '',
+          resume: typeof combinedData.resume === 'string' ? combinedData.resume : (combinedData.resume ?? '').toString(),
           currentCompany: combinedData.currentCompany || '',
           currentPosition: combinedData.currentPosition || '',
           experience: combinedData.experience || '',
@@ -214,7 +214,7 @@ const UserProfile = () => {
         };
         
         setForm(updatedForm);
-        setAvatarPreview(combinedData.avatar || '');
+        setAvatarPreview((combinedData.avatar || '') as string);
         calculateProfileCompletion(updatedForm);
   // Also sync with backend completion (has section-based flags)
   fetchCompletionStatus();
@@ -236,7 +236,7 @@ const UserProfile = () => {
 
   useEffect(() => {
     if (userData?.email) {
-      fetch(`/api/applications/user/${userData.email}`)
+  fetch(`${import.meta.env.VITE_API_BASE_URL}/api/applications/user/${userData.email}`)
         .then(res => res.json())
         .then(apps => setAppliedCount(apps.length || 0));
     }
@@ -265,7 +265,7 @@ const UserProfile = () => {
   const fetchCompletionStatus = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('/api/user-profile/completion', { headers: { Authorization: `Bearer ${token}` } });
+  const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/completion`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const data = await res.json();
         if (typeof data?.completionPercentage === 'number') {
@@ -293,9 +293,12 @@ const UserProfile = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatarPreview(reader.result);
-        setForm(prev => ({ ...prev, avatar: reader.result }));
-        calculateProfileCompletion({ ...form, avatar: reader.result });
+        const result = reader.result;
+        if (typeof result === 'string') {
+          setAvatarPreview(result);
+          setForm(prev => ({ ...prev, avatar: result }));
+          calculateProfileCompletion({ ...form, avatar: result });
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -330,7 +333,7 @@ const UserProfile = () => {
       console.log('Saving personal info:', personalInfoData);
       
       try {
-        const personalRes = await fetch('/api/user-profile/personal-info', {
+  const personalRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/personal-info`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -365,7 +368,7 @@ const UserProfile = () => {
       console.log('Saving professional bio:', professionalBioData);
       
       try {
-        const professionalRes = await fetch('/api/user-profile/professional-bio', {
+  const professionalRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/professional-bio`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -396,7 +399,7 @@ const UserProfile = () => {
       console.log('Saving skills:', skillsData);
       
       try {
-        const skillsRes = await fetch('/api/user-profile/skills', {
+  const skillsRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/skills`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -424,7 +427,7 @@ const UserProfile = () => {
       console.log('Saving education history:', educationData);
       
       try {
-        const educationRes = await fetch('/api/user-profile/education', {
+  const educationRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/education`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -452,7 +455,7 @@ const UserProfile = () => {
       console.log('Saving experience history:', experienceData);
       
       try {
-        const experienceRes = await fetch('/api/user-profile/experience', {
+  const experienceRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/experience`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -482,7 +485,7 @@ const UserProfile = () => {
         console.log('Saving documents:', documentsData);
         
         try {
-          const documentsRes = await fetch('/api/user-profile/resume', {
+          const documentsRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/resume`, {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
@@ -521,7 +524,7 @@ const UserProfile = () => {
       console.log('Saving social links:', socialLinksData);
       
       try {
-        const socialRes = await fetch('/api/user-profile/social-links', {
+  const socialRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile/social-links`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -544,7 +547,7 @@ const UserProfile = () => {
       // Save profile picture (avatar) into profile.profilePicture
       try {
         if (form.avatar) {
-          await fetch('/api/user-profile', {
+          await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile`, {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
@@ -573,7 +576,7 @@ const UserProfile = () => {
         // Refresh Technical Skills from DB to confirm persistence
         try {
           const token = localStorage.getItem('token');
-          const res = await fetch('/api/user-profile', { headers: { Authorization: `Bearer ${token}` } });
+          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/user-profile`, { headers: { Authorization: `Bearer ${token}` } });
           if (res.ok) {
             const latest = await res.json();
             const latestSkills = latest?.skills || latest?.data?.skills || '';
@@ -613,7 +616,7 @@ const UserProfile = () => {
   const viewSavedData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/auth/profile', {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -661,9 +664,9 @@ const UserProfile = () => {
   const updateEducation = (index, field, value) => {
     setForm(prev => ({
       ...prev,
-      education: prev.education.map((edu, i) => 
+      education: Array.isArray(prev.education) ? prev.education.map((edu, i) => 
         i === index ? { ...edu, [field]: value } : edu
-      )
+      ) : []
     }));
   };
 
@@ -679,7 +682,7 @@ const UserProfile = () => {
   const removeEducation = (index) => {
     setForm(prev => ({
       ...prev,
-      education: prev.education.filter((_, i) => i !== index)
+      education: Array.isArray(prev.education) ? prev.education.filter((_, i) => i !== index) : []
     }));
   };
 
@@ -1052,7 +1055,7 @@ const UserProfile = () => {
                         <div>
                           <Label>Languages</Label>
                           <div className="mt-2">
-                            {form.languages && form.languages.length > 0 ? (
+                            {Array.isArray(form.languages) && form.languages.length > 0 ? (
                               <div className="flex flex-wrap gap-2">
                                 {form.languages.map((lang, index) => (
                                   <Badge key={index} variant="secondary" className="bg-purple-50 text-purple-700">
@@ -1068,7 +1071,7 @@ const UserProfile = () => {
                         <div>
                           <Label>Certifications</Label>
                           <div className="mt-2">
-                            {form.certifications && form.certifications.length > 0 ? (
+                            {Array.isArray(form.certifications) && form.certifications.length > 0 ? (
                               <div className="flex flex-wrap gap-2">
                                 {form.certifications.map((cert, index) => (
                                   <Badge key={index} variant="secondary" className="bg-green-50 text-green-700">
@@ -1101,7 +1104,7 @@ const UserProfile = () => {
                     </div>
                     
                     <div className="space-y-4">
-                      {form.education && form.education.length > 0 ? (
+                      {Array.isArray(form.education) && form.education.length > 0 ? (
                         form.education.map((edu, index) => (
                           <Card key={index} className="border border-gray-200">
                             <CardContent className="p-4">

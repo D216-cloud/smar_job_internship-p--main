@@ -126,7 +126,7 @@ const CompanyProfile = () => {
       console.log('Token:', token ? 'Present' : 'Missing');
 
       // Fetch company profile
-      const profileRes = await fetch('/api/company-profile', {
+  const profileRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/company-profile`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -146,7 +146,7 @@ const CompanyProfile = () => {
       }
 
       // Fetch job count
-      const jobsRes = await fetch('/api/jobs/company/me', {
+  const jobsRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/jobs/company/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (jobsRes.ok) {
@@ -156,7 +156,7 @@ const CompanyProfile = () => {
 
       // Fetch application count
       if (profileData?._id) {
-        const appsRes = await fetch(`/api/applications/company/${profileData._id}`, {
+  const appsRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/applications/company/${profileData._id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (appsRes.ok) {
@@ -242,7 +242,7 @@ const CompanyProfile = () => {
       console.log('🔍 Saving company profile...');
       console.log('Form data:', form);
       
-      const res = await fetch('/api/company-profile', {
+  const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/company-profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/context/AuthContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -29,7 +30,6 @@ import { CompanyDashboard } from "./pages/company/CompanyDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MyApplications from './pages/admin/user/MyApplications';
 import React, { Suspense } from "react";
-import { AuthProvider } from '@/context/AuthContext';
 import PublicRoute from './components/PublicRoute';
 import CompanyAnalytics from "./pages/company/CompanyAnalytics";
 import { Applications } from "./pages/company/Applications";
@@ -120,11 +120,11 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
       <BrowserRouter>
         <AuthProvider>
-        <AppContent />
+          <AppContent />
+          <Toaster />
+          <Sonner />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

@@ -41,13 +41,13 @@ export const useAvailableJobs = () => {
       
       // Try to fetch from backend first
       const [jobsResponse, internshipsResponse] = await Promise.all([
-        fetch('/api/jobs', {
+  fetch(`${import.meta.env.VITE_API_BASE_URL}/api/jobs`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
         }),
-        fetch('/api/internships', {
+  fetch(`${import.meta.env.VITE_API_BASE_URL}/api/internships`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
