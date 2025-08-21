@@ -1,6 +1,8 @@
+
 import { toast } from '@/hooks/use-toast';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 export const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('token');
   if (!token) {
@@ -9,6 +11,7 @@ export const makeAuthenticatedRequest = async (url: string, options: RequestInit
       description: "You are not logged in. Please log in and try again.",
       variant: "destructive",
     });
+    window.location.href = '/login';
     throw new Error('No authentication token found');
   }
   try {
@@ -35,7 +38,12 @@ export const makeAuthenticatedRequest = async (url: string, options: RequestInit
     }
 
     if (!response.ok) {
-      const errorData = await response.json();
+      let errorData: { error?: string } = {};
+      try {
+        errorData = await response.json();
+      } catch (_error) {
+        // Ignore JSON parsing errors
+      }
       throw new Error(errorData.error || 'Request failed');
     }
 
@@ -49,4 +57,40 @@ export const makeAuthenticatedRequest = async (url: string, options: RequestInit
     });
     throw error;
   }
+};
+
+// Helper to refresh token (if you implement refresh tokens)
+export const refreshToken = async () => {
+  const refresh = localStorage.getItem('refreshToken');
+  if (!refresh) {
+    window.location.href = '/login';
+    return null;
+  }
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: refresh })
+    });
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+      return data.token;
+    } else {
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      window.location.href = '/login';
+      return null;
+    }
+  } catch {
+    window.location.href = '/login';
+    return null;
+  }
+};
+
+// Helper to logout
+export const logoutUser = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('refreshToken');
+  window.location.href = '/login';
 };
