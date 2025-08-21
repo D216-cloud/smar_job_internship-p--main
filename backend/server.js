@@ -301,7 +301,12 @@ app.post('/api/test/add-sample-data', async (req, res) => {
     console.error('Error adding sample data:', error);
     res.status(500).json({ error: error.message });
   }
-});     
+});    
+
+// 👇 ADDED route to fix "Cannot GET /"
+app.get("/", (req, res) => {
+  res.send("Server is up and running 🚀");
+});
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
