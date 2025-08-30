@@ -1,8 +1,10 @@
 import { toast } from '@/hooks/use-toast';
 
-export const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) => {
+const BASE_URL = import.meta.env.VITE_API_URL; // ✅ get from .env
+
+export const makeAuthenticatedRequest = async (endpoint: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('token');
-  
+
   if (!token) {
     toast({
       title: "Authentication Error",
@@ -13,7 +15,7 @@ export const makeAuthenticatedRequest = async (url: string, options: RequestInit
   }
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {   // ✅ prefix with backend URL
       ...options,
       headers: {
         ...options.headers,
@@ -39,7 +41,7 @@ export const makeAuthenticatedRequest = async (url: string, options: RequestInit
     }
 
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Request failed:', error);
     toast({
       title: "Request Failed",
