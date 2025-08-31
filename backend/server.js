@@ -201,6 +201,12 @@ app.use('/api/applications', require('./routes/applications'));
 app.use('/api/jobs', require('./routes/jobs'));
 app.use('/api/test', require('./routes/testAPI'));
 
+// Root health-check endpoint
+app.get('/', (req, res) => {
+  // Return a friendly plain-text message so visiting the root URL in a browser shows status
+  res.send('API is working — api work ker raha hai');
+});
+
 // Test endpoint to add sample data
 app.post('/api/test/add-sample-data', async (req, res) => {
   try {
