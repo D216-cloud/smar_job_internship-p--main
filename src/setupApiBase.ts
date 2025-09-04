@@ -31,7 +31,7 @@ window.fetch = function(input: RequestInfo, init?: RequestInit) {
   } catch (e) {
     console.error('Error prepending base URL to fetch:', e);
   }
-  return _fetch.call(this, input as any, init);
+  return _fetch.call(this, input as RequestInfo, init);
 };
 
 // Patch axios if present
