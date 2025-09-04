@@ -1,7 +1,6 @@
 require('dotenv').config({ path: __dirname + '/.env' });
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 const Job = require('./models/job');
 const connectDB = require('./config/db');
 const Company = require('./models/company');
