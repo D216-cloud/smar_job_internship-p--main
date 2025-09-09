@@ -8,8 +8,8 @@ export const useSearch = () => {
   // Fetch jobs and internships from backend
   const fetchItems = useCallback(async () => {
     const [jobsRes, internshipsRes] = await Promise.all([
-      fetch('http://localhost:5000/api/jobs'),
-      fetch('http://localhost:5000/api/internships')
+      fetch('/api/jobs'),
+      fetch('/api/internships')
     ]);
     const jobs = await jobsRes.json();
     const internships = await internshipsRes.json();
