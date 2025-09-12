@@ -111,7 +111,8 @@ const AppContent = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
-      {isPublicPage && <Footer />}
+          {isPublicPage && <Footer />}
+          <HealthCheck />
         </div>
   );
 };

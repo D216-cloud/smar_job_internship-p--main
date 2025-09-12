@@ -171,32 +171,73 @@ const JobApplication = () => {
       try {
         setLoading(true);
         setError(null);
+        
+        if (!id) {
+          setError('No job ID provided');
+          return;
+        }
+        
+        if (!isValidObjectId(id)) {
+          setError('Invalid job ID format');
+          return;
+        }
+
+        // First try to get from search results cache
         const all = await searchResults('');
         const found = all.find((j: Job) => j.id === id || j._id === id);
-        if (!found) {
+        
+        if (found) {
+          setJob(found);
+          return;
+        }
+
+        // If not found in cache, try direct API call
+        const response = await fetch(`/api/jobs/${id}`);
+        if (response.ok) {
+          const jobData = await response.json();
+          setJob(jobData);
+        } else if (response.status === 404) {
           setError('Job not found');
         } else {
-          setJob(found);
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
       } catch (err) {
         console.error('Error fetching job:', err);
-        if (err instanceof Error && err.message.includes('401')) {
-          setError('Authentication required. Please log in again.');
-          localStorage.removeItem('token');
-          localStorage.removeItem('userType');
-          localStorage.removeItem('userData');
-          navigate('/login');
+        if (err instanceof Error) {
+          if (err.message.includes('401')) {
+            setError('Authentication required. Please log in again.');
+            localStorage.removeItem('token');
+            localStorage.removeItem('userType');
+            localStorage.removeItem('userData');
+            navigate('/login');
+          } else if (err.message.includes('Network') || err.message.includes('fetch')) {
+            setError('Unable to connect to server. Please check your internet connection.');
+          } else {
+            setError('Failed to load job details. Please try again.');
+          }
         } else {
-          setError('Failed to load job details');
+          setError('An unexpected error occurred');
         }
       } finally {
         setLoading(false);
       }
     };
+
+    // Early return if no ID
+    if (!id) {
+      setError('No job ID provided in URL');
+      setLoading(false);
+      return;
+    }
+
     if (id && isAuthenticated) {
       fetchJob();
     } else if (id && !isAuthenticated && !authLoading) {
+      setError('Please log in to view job applications');
       navigate('/login');
+    } else if (!id) {
+      setError('Invalid job URL');
+      navigate('/user/jobs');
     }
   }, [id, searchResults, isAuthenticated, authLoading, navigate]);
 
