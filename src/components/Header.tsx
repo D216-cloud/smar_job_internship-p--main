@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X, ChevronRight, User, Briefcase, Building2, BookOpen, Star, Zap, Sparkles, Globe, Settings, HelpCircle, Bookmark, TrendingUp, Award, MessageCircle } from 'lucide-react';
-import logo from "../Images/logo.png";
 import Header from "@/components/Header";
 
 const TopNavbar = () => {
@@ -74,9 +73,9 @@ const TopNavbar = () => {
           {/* Enhanced Logo */}
           <Link to="/" className="flex items-center group">
             <img
-              src={logo}
-              alt="Logo"
-              className="h-8 w-auto object-contain bg-transparent"
+              src="/careersnap-logo.svg"
+              alt="CareerSnap - AI-Powered Career Matching"
+              className="h-10 w-auto object-contain bg-transparent transition-all duration-300 group-hover:scale-105"
             />
           </Link>
 

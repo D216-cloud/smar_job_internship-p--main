@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuthContext } from "@/context/AuthContext";
-import logo from "../../Images/logo.png";
 import {
   LayoutDashboard,
   Users,
@@ -130,7 +129,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <Button variant="ghost" size="icon" onClick={() => setShowSidebar(true)} className="rounded-full">
           <Menu className="h-7 w-7 text-blue-600" />
         </Button>
-        <img src={logo} alt="Logo" className="h-7 w-auto" />
+        <img src="/careersnap-logo.svg" alt="CareerSnap - AI-Powered Career Matching" className="h-7 w-auto" />
       </div>
     );
   }
@@ -159,7 +158,11 @@ const Sidebar: React.FC<SidebarProps> = ({
               className="flex items-center gap-2"
               onClick={onClose}
             >
-              <img src={logo} alt="Logo" className="h-7 w-auto" />
+              <img 
+                src="/careersnap-logo.svg" 
+                alt="CareerSnap - AI-Powered Career Matching" 
+                className="h-8 w-auto transition-all duration-300 hover:scale-105" 
+              />
             </Link>
           )}
           <Button

@@ -77,6 +77,25 @@ const JobApplication = () => {
     benefits?: string[];
   }
 
+  interface SearchResultItem {
+    id?: string;
+    _id?: string;
+    jobId?: string;
+    title: string;
+    company: string;
+    companyId?: string;
+    company_id?: string;
+    location?: string;
+    salary?: string;
+    type?: string;
+    description?: string;
+    requirements?: string;
+    postedBy?: string;
+    postedDate?: string;
+    responsibilities?: string[];
+    benefits?: string[];
+  }
+
   interface ApplicationData {
     jobId: string;
     companyId?: string;
@@ -187,22 +206,33 @@ const JobApplication = () => {
 
         // First try to get from search results cache
         const all = await searchResults('');
-        const found = all.find((j: Job) => j.id === id || j._id === id);
-        
+        const found = all.find((j: SearchResultItem) => j.id === id || (j._id && j._id === id)) as Job | undefined;
+
         if (found) {
           setJob(found);
           return;
         }
 
-        // If not found in cache, try direct API call
+        // If not found in cache, try direct API calls for both jobs and internships
         try {
-          const response = await fetch(`/api/jobs/${id}`);
+          // Try jobs first
+          let response = await fetch(`/api/jobs/${id}`);
           if (response.ok) {
             const jobData = await response.json();
             setJob(jobData);
             return;
-          } else if (response.status === 404) {
-            setError('Job not found');
+          }
+          
+          // If not found in jobs, try internships
+          response = await fetch(`/api/internships/${id}`);
+          if (response.ok) {
+            const internshipData = await response.json();
+            setJob(internshipData);
+            return;
+          }
+          
+          if (response.status === 404) {
+            setError('Job or internship not found');
             return;
           } else {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -210,19 +240,46 @@ const JobApplication = () => {
         } catch (apiError) {
           console.warn('API call failed, checking for sample data:', apiError);
           
-          // Fallback: Create a sample job for demonstration (useful for deployment without backend)
+          // Fallback: Check local sample data first
+          try {
+            const { getAllJobs, getAllInternships } = await import('@/data/jobsData');
+            const allJobs = getAllJobs();
+            const allInternships = getAllInternships();
+            
+            const foundInSamples = [...allJobs, ...allInternships].find(item => 
+              item.id === id || (item as unknown as Job)._id === id
+            );
+            
+            if (foundInSamples) {
+              // Transform benefits to ensure it's an array (split string if needed)
+              const transformedJob: Job = {
+                ...foundInSamples,
+                _id: foundInSamples.id,
+                benefits: typeof foundInSamples.benefits === 'string'
+                  ? foundInSamples.benefits.split(', ')
+                  : foundInSamples.benefits || []
+              };
+              setJob(transformedJob);
+              return;
+            }
+          } catch (importError) {
+            console.warn('Could not load sample data:', importError);
+          }
+          
+          // Create a sample job for demonstration (useful for deployment without backend)
           if (process.env.NODE_ENV === 'production' || !import.meta.env.VITE_API_URL) {
+            const isInternship = id.includes('int') || id.includes('intern');
             const sampleJob: Job = {
               _id: id,
               id: id,
-              title: 'Sample Job Position',
+              title: isInternship ? 'Sample Internship Position' : 'Sample Job Position',
               company: 'Demo Company',
               location: 'Remote',
-              salary: '$50,000 - $70,000',
-              type: 'Full-time',
+              salary: isInternship ? '$2,000/month stipend' : '$50,000 - $70,000',
+              type: isInternship ? 'Internship' : 'Full-time',
               postedBy: 'demo-company-id',
               postedDate: new Date().toISOString(),
-              description: 'This is a sample job posting for demonstration purposes. In a real deployment, this would be fetched from your backend API.',
+              description: `This is a sample ${isInternship ? 'internship' : 'job'} posting for demonstration purposes. In a real deployment, this would be fetched from your backend API.`,
               requirements: 'Sample requirement 1, Sample requirement 2, Sample requirement 3',
               responsibilities: ['Sample responsibility 1', 'Sample responsibility 2'],
               benefits: ['Sample benefit 1', 'Sample benefit 2']
@@ -616,102 +673,63 @@ const JobApplication = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
-      {/* Cosmic Background Particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(24)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-blue-300 rounded-full opacity-20"
-            initial={{
-              x: Math.random() * 100,
-              y: Math.random() * 100,
-              scale: 0.3,
-            }}
-            animate={{
-              x: [0, 50, 0],
-              y: [0, -30, 0],
-              scale: [0.3, 1, 0.3],
-            }}
-            transition={{
-              duration: 8 + Math.random() * 6,
-              repeat: Infinity,
-              delay: i * 0.3,
-            }}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Glowing Light Overlay */}
-      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse delay-1000"></div>
-
-      {/* Premium AI Button — Floating Gem */}
-      <button
-        onClick={() => setShowAIMatching(true)}
-        className="fixed bottom-8 right-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-5 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-500 z-50 group cursor-pointer"
-        style={{
-          boxShadow:
-            '0 0 30px rgba(59, 130, 246, 0.3), 0 0 60px rgba(139, 92, 246, 0.2)',
-        }}
-      >
-        <div className="relative">
-          <Brain className="h-6 w-6 text-white" />
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-300 rounded-full animate-ping"></div>
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
+      <div className="max-w-7xl mx-auto space-y-4">
+        {/* Header Navigation */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate(-1)} 
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-all duration-300"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Back to Jobs</span>
+            </Button>
+          </div>
+          
+          {/* Premium AI Button */}
+          <button
+            onClick={() => setShowAIMatching(true)}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+          >
+            <Brain className="h-5 w-5 text-white" />
+          </button>
         </div>
-        <span className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-black/80 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
-          AI Resume Match
-        </span>
-      </button>
 
-      {/* Header Navigation */}
-      <div className="p-6 border-b bg-white/80 backdrop-blur-sm sticky top-0 z-40">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate(-1)} 
-          className="mb-4 flex items-center gap-3 text-gray-600 hover:text-gray-900 transition-all duration-300 px-4 py-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          Back to Jobs
-        </Button>
-      </div>
-
-      <div className="flex h-[calc(100vh-120px)]">
-        {/* Left Panel — Job Details */}
-        <div className="w-1/3 border-r bg-white/80 backdrop-blur-sm p-6 h-full overflow-y-auto">
-          <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-xl animate-fade-in">
-            <CardHeader className="pb-6">
-              <div className="flex items-start gap-5">
-                <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/20 to-purple-600/20 border border-blue-200/30">
-                  <Briefcase className="h-8 w-8 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <CardTitle className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-blue-700 bg-clip-text text-transparent mb-2">
-                    {job.title}
-                  </CardTitle>
-                  <div className="flex items-center gap-3 text-gray-700 mb-2">
-                    <Building className="h-5 w-5" />
-                    <span className="font-semibold text-gray-900">{job.company}</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-gray-600 mb-2">
-                    <MapPin className="h-5 w-5" />
-                    <span>{job.location || 'Remote'}</span>
-                  </div>
+        
+        {/* Job Details Section - Full width card */}
+        <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl">
+          <CardHeader className="pb-4">
+            <div className="flex items-start gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                <Briefcase className="h-8 w-8 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-xl lg:text-2xl font-bold text-gray-900 mb-2">
+                  {job.title}
+                </CardTitle>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 text-sm">
+                  <p className="text-gray-600 flex items-center gap-1">
+                    <Building className="h-4 w-4" />
+                    {job.company}
+                  </p>
+                  <p className="text-gray-600 flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    {job.location || 'Remote'}
+                  </p>
                   {job.salary && (
-                    <div className="flex items-center gap-3 text-gray-600 mb-2">
-                      <DollarSign className="h-5 w-5" />
-                      <span className="font-medium">{job.salary}</span>
-                    </div>
+                    <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                      <DollarSign className="h-4 w-4" />
+                      {job.salary}
+                    </p>
                   )}
-                  {job.type && (
-                    <Badge 
-                      variant="secondary" 
-                      className="w-fit bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200/50 font-medium"
-                    >
+                </div>
+                {job.type && (
+                  <Badge 
+                    variant="secondary" 
+                    className="w-fit bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200/50 font-medium mt-2"
+                  >
                       {job.type}
                     </Badge>
                   )}
@@ -750,31 +768,29 @@ const JobApplication = () => {
               </div>
             </CardContent>
           </Card>
-        </div>
 
-        {/* Right Panel — Application Form */}
-        <div className="w-2/3 overflow-y-auto p-6">
-          <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-xl hover:shadow-3xl transition-all duration-500 animate-fade-in">
-            <CardHeader className="pb-8">
-              <div className="flex items-center justify-between">
+        {/* Application Form Panel */}
+        <Card className="shadow-lg lg:shadow-2xl border-0 bg-white/95 lg:bg-white/90 backdrop-blur-xl hover:shadow-xl lg:hover:shadow-3xl transition-all duration-500 animate-fade-in rounded-lg lg:rounded-2xl">
+            <CardHeader className="pb-4 lg:pb-8 p-4 lg:p-6">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
-                  <CardTitle className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                  <CardTitle className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                     Apply Now
                   </CardTitle>
-                  <p className="text-gray-600 text-lg leading-relaxed">
+                  <p className="text-gray-600 text-sm lg:text-lg leading-relaxed">
                     Complete your application for <span className="font-bold text-gray-900">{job.title}</span> at <span className="font-bold text-gray-900">{job.company}</span>
                   </p>
                 </div>
-                <div className="text-right">
+                <div className="text-center lg:text-right">
                   <div className="text-sm text-gray-500 mb-1">Progress</div>
-                  <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  <div className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     {formProgress}%
                   </div>
                 </div>
               </div>
 
               {/* Animated Progress Bar */}
-              <div className="mt-6 w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+              <div className="mt-6 w-full h-2 lg:h-3 bg-gray-200 rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full shadow-lg transition-all duration-1000 ease-out"
                   style={{ width: `${formProgress}%` }}
@@ -784,34 +800,34 @@ const JobApplication = () => {
               </div>
             </CardHeader>
 
-            <CardContent className="space-y-8">
+            <CardContent className="space-y-4 lg:space-y-8 p-4 lg:p-6">
               {!isLoggedIn ? (
-                <div className="text-center py-16">
-                  <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-2">Authentication Required</h3>
+                <div className="text-center py-12 lg:py-16">
+                  <AlertCircle className="h-12 w-12 lg:h-16 lg:w-16 text-red-500 mx-auto mb-4" />
+                  <h3 className="text-xl lg:text-2xl font-semibold text-gray-900 mb-2">Authentication Required</h3>
                   <p className="text-gray-600 mb-6">You must be logged in to apply for this position.</p>
                   <Link to="/login">
-                    <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-4 rounded-2xl font-semibold text-lg shadow-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
+                    <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 lg:px-10 py-3 lg:py-4 rounded-2xl font-semibold text-base lg:text-lg shadow-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
                       Login to Apply
                     </Button>
                   </Link>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-8">
+                <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-8">
                   {/* Personal Info Section */}
-                  <div className="space-y-6 bg-gradient-to-r from-gray-50 to-blue-50 p-8 rounded-3xl border border-gray-100/50 backdrop-blur-sm">
-                    <div className="flex items-center gap-4">
-                      <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg">
-                        <User className="h-6 w-6" />
+                  <div className="space-y-4 lg:space-y-6 bg-gradient-to-r from-gray-50 to-blue-50 p-4 lg:p-8 rounded-xl lg:rounded-3xl border border-gray-100/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-3 lg:gap-4">
+                      <div className="p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg">
+                        <User className="h-5 w-5 lg:h-6 lg:w-6" />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-bold text-gray-900">Personal Information</h3>
-                        <p className="text-gray-600">Let us know who you are</p>
+                        <h3 className="text-lg lg:text-2xl font-bold text-gray-900">Personal Information</h3>
+                        <p className="text-sm lg:text-base text-gray-600">Let us know who you are</p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
+                      <div className="space-y-3 lg:space-y-4">
                         <Label htmlFor="userId" className="text-sm font-medium text-gray-700 flex items-center gap-2">
                           User ID
                           <span className="text-red-500">*</span>
@@ -826,25 +842,25 @@ const JobApplication = () => {
                             value={formData.userId}
                             onChange={handleInputChange}
                             required
-                            className="h-14 pl-12 pr-6 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                            className="h-12 lg:h-14 pl-10 lg:pl-12 pr-4 lg:pr-6 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
                             placeholder="Auto-generated"
                             readOnly
                           />
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                            <FileText className="h-5 w-5" />
+                          <div className="absolute left-3 lg:left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                            <FileText className="h-4 w-4 lg:h-5 lg:w-5" />
                           </div>
                         </div>
                         <Button
                           type="button"
                           onClick={generateUserId}
-                          className="h-12 px-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-medium"
+                          className="h-10 lg:h-12 px-4 lg:px-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-medium"
                         >
-                          <Sparkles className="h-4 w-4 mr-2" />
+                          <Sparkles className="h-3 w-3 lg:h-4 lg:w-4 mr-2" />
                           Regenerate ID
                         </Button>
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="space-y-3 lg:space-y-4">
                         <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">Full Name</Label>
                         <Input
                           id="fullName"
@@ -852,12 +868,12 @@ const JobApplication = () => {
                           value={formData.fullName}
                           onChange={handleInputChange}
                           required
-                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          className="h-12 lg:h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
                           placeholder="Enter your full name"
                         />
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="space-y-3 lg:space-y-4">
                         <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email Address</Label>
                         <Input
                           id="email"
@@ -866,12 +882,12 @@ const JobApplication = () => {
                           value={formData.email}
                           onChange={handleInputChange}
                           required
-                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          className="h-12 lg:h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
                           placeholder="you@example.com"
                         />
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="space-y-3 lg:space-y-4">
                         <Label htmlFor="phone" className="text-sm font-medium text-gray-700">Phone Number</Label>
                         <Input
                           id="phone"
@@ -880,12 +896,12 @@ const JobApplication = () => {
                           value={formData.phone}
                           onChange={handleInputChange}
                           required
-                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          className="h-12 lg:h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
                           placeholder="+1 (555) 123-4567"
                         />
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="space-y-3 lg:space-y-4 lg:col-span-1">
                         <Label htmlFor="startDate" className="text-sm font-medium text-gray-700">Available Start Date</Label>
                         <Input
                           id="startDate"
@@ -893,50 +909,50 @@ const JobApplication = () => {
                           type="date"
                           value={formData.startDate}
                           onChange={handleInputChange}
-                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          className="h-12 lg:h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Professional Info */}
-                  <div className="space-y-6 bg-gradient-to-r from-gray-50 to-indigo-50 p-8 rounded-3xl border border-gray-100/50 backdrop-blur-sm">
-                    <div className="flex items-center gap-4">
-                      <div className="p-4 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg">
-                        <Briefcase className="h-6 w-6" />
+                  <div className="space-y-4 lg:space-y-6 bg-gradient-to-r from-gray-50 to-indigo-50 p-4 lg:p-8 rounded-xl lg:rounded-3xl border border-gray-100/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-3 lg:gap-4">
+                      <div className="p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg">
+                        <Briefcase className="h-5 w-5 lg:h-6 lg:w-6" />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-bold text-gray-900">Professional Experience</h3>
-                        <p className="text-gray-600">Showcase your career journey</p>
+                        <h3 className="text-lg lg:text-2xl font-bold text-gray-900">Professional Experience</h3>
+                        <p className="text-sm lg:text-base text-gray-600">Showcase your career journey</p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
+                      <div className="space-y-3 lg:space-y-4">
                         <Label htmlFor="currentCompany" className="text-sm font-medium text-gray-700">Current Company</Label>
                         <Input
                           id="currentCompany"
                           name="currentCompany"
                           value={formData.currentCompany}
                           onChange={handleInputChange}
-                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          className="h-12 lg:h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
                           placeholder="e.g., TechCorp Inc."
                         />
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="space-y-3 lg:space-y-4">
                         <Label htmlFor="currentPosition" className="text-sm font-medium text-gray-700">Current Position</Label>
                         <Input
                           id="currentPosition"
                           name="currentPosition"
                           value={formData.currentPosition}
                           onChange={handleInputChange}
-                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          className="h-12 lg:h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
                           placeholder="e.g., Senior Frontend Developer"
                         />
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="space-y-3 lg:space-y-4">
                         <Label htmlFor="experience" className="text-sm font-medium text-gray-700">Years of Experience</Label>
                         <Input
                           id="experience"
@@ -944,14 +960,14 @@ const JobApplication = () => {
                           type="number"
                           value={formData.experience}
                           onChange={handleInputChange}
-                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          className="h-12 lg:h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
                           placeholder="e.g., 3"
                           min="0"
                           max="50"
                         />
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="space-y-3 lg:space-y-4">
                         <Label htmlFor="expectedSalary" className="text-sm font-medium text-gray-700">Expected Salary (Annual)</Label>
                         <Input
                           id="expectedSalary"
@@ -959,20 +975,20 @@ const JobApplication = () => {
                           type="number"
                           value={formData.expectedSalary}
                           onChange={handleInputChange}
-                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          className="h-12 lg:h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
                           placeholder="$80,000"
                           min="0"
                         />
                       </div>
 
-                      <div className="space-y-4 md:col-span-2">
+                      <div className="space-y-3 lg:space-y-4 lg:col-span-2">
                         <Label htmlFor="skills" className="text-sm font-medium text-gray-700">Key Skills & Technologies</Label>
                         <Input
                           id="skills"
                           name="skills"
                           value={formData.skills}
                           onChange={handleInputChange}
-                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          className="h-12 lg:h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
                           placeholder="React, TypeScript, Node.js, Tailwind CSS, Figma..."
                         />
                         <p className="text-xs text-gray-500">Separate with commas</p>
@@ -981,19 +997,19 @@ const JobApplication = () => {
                   </div>
 
                   {/* Online Presence */}
-                  <div className="space-y-6 bg-gradient-to-r from-gray-50 to-purple-50 p-8 rounded-3xl border border-gray-100/50 backdrop-blur-sm">
-                    <div className="flex items-center gap-4">
-                      <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-lg">
-                        <Globe className="h-6 w-6" />
+                  <div className="space-y-4 lg:space-y-6 bg-gradient-to-r from-gray-50 to-purple-50 p-4 lg:p-8 rounded-xl lg:rounded-3xl border border-gray-100/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-3 lg:gap-4">
+                      <div className="p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-lg">
+                        <Globe className="h-5 w-5 lg:h-6 lg:w-6" />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-bold text-gray-900">Online Presence</h3>
-                        <p className="text-gray-600">Connect your professional profiles</p>
+                        <h3 className="text-lg lg:text-2xl font-bold text-gray-900">Online Presence</h3>
+                        <p className="text-sm lg:text-base text-gray-600">Connect your professional profiles</p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8">
+                      <div className="space-y-3 lg:space-y-4">
                         <Label htmlFor="linkedIn" className="text-sm font-medium text-gray-700">LinkedIn Profile</Label>
                         <Input
                           id="linkedIn"
@@ -1001,12 +1017,12 @@ const JobApplication = () => {
                           value={formData.linkedIn}
                           onChange={handleInputChange}
                           type="url"
-                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          className="h-12 lg:h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
                           placeholder="https://linkedin.com/in/yourname"
                         />
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="space-y-3 lg:space-y-4">
                         <Label htmlFor="portfolio" className="text-sm font-medium text-gray-700">Portfolio / GitHub</Label>
                         <Input
                           id="portfolio"
@@ -1014,7 +1030,7 @@ const JobApplication = () => {
                           value={formData.portfolio}
                           onChange={handleInputChange}
                           type="url"
-                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          className="h-12 lg:h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
                           placeholder="https://yourportfolio.com"
                         />
                       </div>
@@ -1116,29 +1132,29 @@ Sincerely,
                   </div>
 
                   {/* AI Match Button — Premium Feature */}
-                  <div className="pt-6 text-center">
+                  <div className="pt-4 lg:pt-6 text-center">
                     <Button
                       type="button"
                       onClick={() => setShowAIMatching(true)}
-                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold py-5 rounded-2xl shadow-2xl hover:from-green-700 hover:to-emerald-700 transition-all duration-500 text-lg relative overflow-hidden group"
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold py-4 lg:py-5 rounded-2xl shadow-2xl hover:from-green-700 hover:to-emerald-700 transition-all duration-500 text-base lg:text-lg relative overflow-hidden group"
                       style={{
                         boxShadow:
                           '0 10px 25px rgba(16, 185, 129, 0.2), 0 0 30px rgba(16, 185, 129, 0.1)',
                       }}
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-green-400/30 to-emerald-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                      <Brain className="h-6 w-6 mr-3 text-white" />
+                      <Brain className="h-5 w-5 lg:h-6 lg:w-6 mr-3 text-white" />
                       <span>✨ AI-Powered Resume Match Analysis</span>
                       <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-300 rounded-full animate-ping"></div>
                     </Button>
                   </div>
 
                   {/* Submit Button — Grand Finale */}
-                  <div className="pt-6 text-center">
+                  <div className="pt-4 lg:pt-6 text-center">
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-6 rounded-2xl shadow-3xl hover:from-blue-700 hover:to-purple-700 transition-all duration-500 text-xl relative overflow-hidden group"
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-5 lg:py-6 rounded-2xl shadow-3xl hover:from-blue-700 hover:to-purple-700 transition-all duration-500 text-lg lg:text-xl relative overflow-hidden group"
                       style={{
                         boxShadow:
                           '0 15px 35px rgba(59, 130, 246, 0.3), 0 0 40px rgba(139, 92, 246, 0.2)',
@@ -1147,12 +1163,12 @@ Sincerely,
                       <div className="absolute inset-0 bg-gradient-to-r from-blue-400/30 to-purple-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                       {isSubmitting ? (
                         <>
-                          <Loader2 className="h-6 w-6 mr-3 animate-spin" />
+                          <Loader2 className="h-5 w-5 lg:h-6 lg:w-6 mr-3 animate-spin" />
                           Processing...
                         </>
                       ) : (
                         <>
-                          <CheckSquare className="h-6 w-6 mr-3" />
+                          <CheckSquare className="h-5 w-5 lg:h-6 lg:w-6 mr-3" />
                           Submit My Application
                         </>
                       )}
@@ -1162,24 +1178,23 @@ Sincerely,
               )}
             </CardContent>
           </Card>
-        </div>
+        
+        {/* AI Resume Matching Modal — Ultra-Luxury Version */}
+        {showAIMatching && userData && job && (() => {
+          const uid = (userData as { _id?: string; id?: string })._id || (userData as { _id?: string; id?: string }).id || '';
+          const jid = (job.id || job._id || job.jobId || '') as string;
+          return (
+            <AIResumeMatching
+              isOpen={showAIMatching}
+              onClose={() => setShowAIMatching(false)}
+              userId={uid}
+              jobId={jid}
+              jobTitle={job.title}
+              companyName={job.company}
+            />
+          );
+        })()}
       </div>
-
-      {/* AI Resume Matching Modal — Ultra-Luxury Version */}
-      {showAIMatching && userData && job && (() => {
-        const uid = (userData as { _id?: string; id?: string })._id || (userData as { _id?: string; id?: string }).id || '';
-        const jid = (job.id || job._id || job.jobId || '') as string;
-        return (
-          <AIResumeMatching
-            isOpen={showAIMatching}
-            onClose={() => setShowAIMatching(false)}
-            userId={uid}
-            jobId={jid}
-            jobTitle={job.title}
-            companyName={job.company}
-          />
-        );
-      })()}
     </div>
   );
 };

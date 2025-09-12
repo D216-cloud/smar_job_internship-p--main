@@ -191,67 +191,50 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
-      <div className="max-w-7xl mx-auto space-y-4">
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen p-3 sm:p-4">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={() => navigate(-1)}
-              className="rounded-full"
+              className="h-10 w-10 rounded-full hover:bg-white/50 transition-all duration-200"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">User Profile</h1>
-              <p className="text-gray-600">Save your information to the database</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">User Profile</h1>
+              <p className="text-sm sm:text-base text-gray-600">Manage your personal information</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 sm:gap-3">
             <Button 
               onClick={viewSavedData} 
               variant="outline"
-              className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+              className="flex-1 sm:flex-none bg-green-50 text-green-700 border-green-200 hover:bg-green-100 h-10 sm:h-11 text-sm font-medium"
             >
               <FileText className="h-4 w-4 mr-2" />
-              View Saved Data
+              <span className="hidden sm:inline">View Saved Data</span>
+              <span className="sm:hidden">View Data</span>
             </Button>
           </div>
         </div>
 
         {/* Profile Card */}
-        <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4 mb-4">
-              <Avatar className="w-16 h-16 border-2 border-white shadow-md">
-                <AvatarImage src={profileData.profilePicture} />
-                <AvatarFallback className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
-                  {profileData.firstName?.[0]?.toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {profileData.firstName} {profileData.lastName}
-                </h2>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 text-sm">
-                  <p className="text-gray-600 flex items-center gap-1">
-                    <Mail className="h-4 w-4" />
-                    {profileData.email || '—'}
-                  </p>
-                  <p className="text-gray-600 flex items-center gap-1">
-                    <FileText className="h-4 w-4" />
-                    Applications Applied: <span className="font-semibold ml-1">{profileData.applicationCount ?? 0}</span>
-                  </p>
-                </div>
-                {profileData.currentPosition && (
-                  <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                    <Briefcase className="h-3 w-3" />
-                    {profileData.currentPosition} at {profileData.currentCompany}
-                  </p>
-                )}
-                <div className="mt-2">
+        <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl overflow-hidden">
+          <CardContent className="p-4 sm:p-6">
+            {/* Mobile-first profile header */}
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4 mb-6">
+              <div className="flex items-center gap-4 sm:flex-col sm:items-center sm:gap-3">
+                <Avatar className="w-16 h-16 sm:w-20 sm:h-20 border-3 border-white shadow-lg">
+                  <AvatarImage src={profileData.profilePicture} />
+                  <AvatarFallback className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+                    {profileData.firstName?.[0]?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="sm:text-center">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -267,47 +250,80 @@ const UserProfile = () => {
                       reader.readAsDataURL(file);
                     }}
                   />
-                  <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                    <Edit className="h-4 w-4 mr-2" />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="h-9 text-xs font-medium bg-white/50 hover:bg-white/80 transition-all duration-200"
+                  >
+                    <Edit className="h-3 w-3 mr-1.5" />
                     Change Photo
                   </Button>
                 </div>
               </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                  {profileData.firstName} {profileData.lastName}
+                </h2>
+                <div className="space-y-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 text-sm">
+                    <p className="text-gray-600 flex items-center gap-2">
+                      <Mail className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">{profileData.email || '—'}</span>
+                    </p>
+                    <p className="text-gray-600 flex items-center gap-2">
+                      <FileText className="h-4 w-4 flex-shrink-0" />
+                      <span>Applications: <span className="font-semibold">{profileData.applicationCount ?? 0}</span></span>
+                    </p>
+                  </div>
+                  {profileData.currentPosition && (
+                    <p className="text-sm text-gray-500 flex items-center gap-2">
+                      <Briefcase className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">{profileData.currentPosition} at {profileData.currentCompany}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Responsive Grid Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
               {/* Personal Information */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="p-1.5 rounded-lg bg-blue-100">
-                    <User className="h-4 w-4 text-blue-600" />
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-xl bg-blue-100 shadow-sm">
+                    <User className="h-5 w-5 text-blue-600" />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900">Personal Information</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900">Personal Information</h3>
                 </div>
                 
-                <div className="grid grid-cols-1 gap-3">
-                  <div>
-                    <Label htmlFor="firstName" className="text-sm">First Name *</Label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      value={profileData.firstName}
-                      onChange={handleChange}
-                      placeholder="Enter your first name"
-                    />
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="firstName" className="text-sm font-medium text-gray-700 mb-2 block">First Name *</Label>
+                      <Input
+                        id="firstName"
+                        name="firstName"
+                        value={profileData.firstName}
+                        onChange={handleChange}
+                        placeholder="Enter your first name"
+                        className="h-11 text-base border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="lastName" className="text-sm font-medium text-gray-700 mb-2 block">Last Name *</Label>
+                      <Input
+                        id="lastName"
+                        name="lastName"
+                        value={profileData.lastName}
+                        onChange={handleChange}
+                        placeholder="Enter your last name"
+                        className="h-11 text-base border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+                      />
+                    </div>
                   </div>
                   <div>
-                    <Label htmlFor="lastName">Last Name *</Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      value={profileData.lastName}
-                      onChange={handleChange}
-                      placeholder="Enter your last name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Login Email (auto-fetched) *</Label>
+                    <Label htmlFor="email" className="text-sm font-medium text-gray-700 mb-2 block">Login Email (auto-fetched) *</Label>
                     <Input
                       id="email"
                       name="email"
@@ -316,103 +332,116 @@ const UserProfile = () => {
                       onChange={handleChange}
                       placeholder="your.email@example.com"
                       disabled
+                      className="h-11 text-base bg-gray-50 border-gray-200"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="phone">Phone Number</Label>
+                    <Label htmlFor="phone" className="text-sm font-medium text-gray-700 mb-2 block">Phone Number</Label>
                     <Input
                       id="phone"
                       name="phone"
                       value={profileData.phone}
                       onChange={handleChange}
                       placeholder="+1 (555) 123-4567"
+                      className="h-11 text-base border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="location">Location</Label>
+                    <Label htmlFor="location" className="text-sm font-medium text-gray-700 mb-2 block">Location</Label>
                     <Input
                       id="location"
                       name="location"
                       value={profileData.location}
                       onChange={handleChange}
                       placeholder="City, State, Country"
+                      className="h-11 text-base border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="expectedSalary">Expected Salary</Label>
+                    <Label htmlFor="expectedSalary" className="text-sm font-medium text-gray-700 mb-2 block">Expected Salary</Label>
                     <Input
                       id="expectedSalary"
                       name="expectedSalary"
                       value={profileData.expectedSalary}
                       onChange={handleChange}
                       placeholder="$50,000 - $70,000"
+                      className="h-11 text-base border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Professional Information */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="p-1.5 rounded-lg bg-green-100">
-                    <Briefcase className="h-4 w-4 text-green-600" />
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-xl bg-green-100 shadow-sm">
+                    <Briefcase className="h-5 w-5 text-green-600" />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900">Professional Information</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900">Professional Information</h3>
                 </div>
                 
-                <div className="grid grid-cols-1 gap-3">
-                  <div>
-                    <Label htmlFor="currentPosition" className="text-sm">Current Position</Label>
-                    <Input
-                      id="currentPosition"
-                      name="currentPosition"
-                      value={profileData.currentPosition}
-                      onChange={handleChange}
-                      placeholder="Software Developer"
-                    />
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="currentPosition" className="text-sm font-medium text-gray-700 mb-2 block">Current Position</Label>
+                      <Input
+                        id="currentPosition"
+                        name="currentPosition"
+                        value={profileData.currentPosition}
+                        onChange={handleChange}
+                        placeholder="Software Developer"
+                        className="h-11 text-base border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-200"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="currentCompany" className="text-sm font-medium text-gray-700 mb-2 block">Current Company</Label>
+                      <Input
+                        id="currentCompany"
+                        name="currentCompany"
+                        value={profileData.currentCompany}
+                        onChange={handleChange}
+                        placeholder="Tech Company Inc."
+                        className="h-11 text-base border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-200"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="experience" className="text-sm font-medium text-gray-700 mb-2 block">Years of Experience</Label>
+                      <Input
+                        id="experience"
+                        name="experience"
+                        value={profileData.experience}
+                        onChange={handleChange}
+                        placeholder="3 years"
+                        className="h-11 text-base border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-200"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="education" className="text-sm font-medium text-gray-700 mb-2 block">Education</Label>
+                      <Input
+                        id="education"
+                        name="education"
+                        value={profileData.education}
+                        onChange={handleChange}
+                        placeholder="Bachelor's in Computer Science"
+                        className="h-11 text-base border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-200"
+                      />
+                    </div>
                   </div>
                   <div>
-                    <Label htmlFor="currentCompany">Current Company</Label>
-                    <Input
-                      id="currentCompany"
-                      name="currentCompany"
-                      value={profileData.currentCompany}
-                      onChange={handleChange}
-                      placeholder="Tech Company Inc."
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="experience">Years of Experience</Label>
-                    <Input
-                      id="experience"
-                      name="experience"
-                      value={profileData.experience}
-                      onChange={handleChange}
-                      placeholder="3 years"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="education">Education</Label>
-                    <Input
-                      id="education"
-                      name="education"
-                      value={profileData.education}
-                      onChange={handleChange}
-                      placeholder="Bachelor's in Computer Science"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="skills">Skills</Label>
+                    <Label htmlFor="skills" className="text-sm font-medium text-gray-700 mb-2 block">Skills</Label>
                     <Input
                       id="skills"
                       name="skills"
                       value={profileData.skills}
                       onChange={handleChange}
                       placeholder="JavaScript, React, Node.js, Python, AWS..."
+                      className="h-11 text-base border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-200"
                     />
                   </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="bio">Bio</Label>
+                  <div>
+                    <Label htmlFor="bio" className="text-sm font-medium text-gray-700 mb-2 block">Bio</Label>
                     <Textarea
                       id="bio"
                       name="bio"
@@ -420,74 +449,75 @@ const UserProfile = () => {
                       onChange={handleChange}
                       placeholder="Tell us about yourself, your experience, and what you're looking for..."
                       rows={4}
+                      className="text-base border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-200 resize-none"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Social Links */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="p-1.5 rounded-lg bg-purple-100">
-                    <Globe className="h-4 w-4 text-purple-600" />
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 rounded-xl bg-purple-100 shadow-sm">
+                    <Globe className="h-5 w-5 text-purple-600" />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900">Social Links</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900">Social Links</h3>
                 </div>
                 
-                <div className="grid grid-cols-1 gap-3">
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor="linkedin" className="text-sm">LinkedIn</Label>
+                    <Label htmlFor="linkedin" className="text-sm font-medium text-gray-700 mb-2 block">LinkedIn</Label>
                     <div className="relative">
-                      <Linkedin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Linkedin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
                         id="linkedin"
                         name="linkedin"
                         value={profileData.linkedin}
                         onChange={handleChange}
                         placeholder="https://linkedin.com/in/yourprofile"
-                        className="pl-10"
+                        className="h-11 pl-10 text-base border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
                       />
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="github">GitHub</Label>
+                    <Label htmlFor="github" className="text-sm font-medium text-gray-700 mb-2 block">GitHub</Label>
                     <div className="relative">
-                      <Github className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Github className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
                         id="github"
                         name="github"
                         value={profileData.github}
                         onChange={handleChange}
                         placeholder="https://github.com/yourusername"
-                        className="pl-10"
+                        className="h-11 pl-10 text-base border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
                       />
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="twitter">Twitter</Label>
+                    <Label htmlFor="twitter" className="text-sm font-medium text-gray-700 mb-2 block">Twitter</Label>
                     <div className="relative">
-                      <Twitter className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Twitter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
                         id="twitter"
                         name="twitter"
                         value={profileData.twitter}
                         onChange={handleChange}
                         placeholder="https://twitter.com/yourusername"
-                        className="pl-10"
+                        className="h-11 pl-10 text-base border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
                       />
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="website">Personal Website</Label>
+                    <Label htmlFor="website" className="text-sm font-medium text-gray-700 mb-2 block">Personal Website</Label>
                     <div className="relative">
-                      <Globe className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
                         id="website"
                         name="website"
                         value={profileData.website}
                         onChange={handleChange}
                         placeholder="https://yourwebsite.com"
-                        className="pl-10"
+                        className="h-11 pl-10 text-base border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"
                       />
                     </div>
                   </div>
@@ -498,33 +528,35 @@ const UserProfile = () => {
         </Card>
 
         {/* Documents - Resume Upload */}
-        <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Resume
+        <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl overflow-hidden">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
+              <div className="p-2 rounded-xl bg-indigo-100 shadow-sm">
+                <FileText className="h-5 w-5 text-indigo-600" />
+              </div>
+              Resume & Documents
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6">
             <ResumeUpload currentResumeUrl={profileData.resume || undefined} />
           </CardContent>
         </Card>
 
         {/* Save Button */}
-        <div className="flex gap-2 mt-2">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <Button 
             onClick={handleSave} 
             disabled={saving} 
-            className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-2 rounded-lg shadow-md"
+            className="flex-1 h-12 sm:h-13 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
           >
             {saving ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
                 Saving to Database...
               </>
             ) : (
               <>
-                <Save className="h-4 w-4 mr-2" />
+                <Save className="h-5 w-5 mr-3" />
                 Save Changes to Database
               </>
             )}
@@ -532,9 +564,9 @@ const UserProfile = () => {
           <Button 
             variant="outline" 
             onClick={() => navigate('/dashboard')}
-            className="px-6"
+            className="h-12 sm:h-13 px-6 sm:px-8 text-base font-medium border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-xl transition-all duration-300"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-5 w-5 mr-2" />
             Back to Dashboard
           </Button>
         </div>

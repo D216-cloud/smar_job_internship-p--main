@@ -66,13 +66,14 @@ export const Internships = () => {
   useEffect(() => {
     const fetchInternships = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/internships');
+        const response = await fetch('/api/internships');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
         setInternships(data);
       } catch (err) {
+        console.warn('API not available, using sample data:', err);
         const localInternships = getAllInternships();
         setInternships(localInternships);
       } finally {

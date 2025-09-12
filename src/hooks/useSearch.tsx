@@ -55,8 +55,40 @@ export const useSearch = () => {
           postedBy: 'startup-xyz'
         }
       ];
+
+      const sampleInternships = [
+        {
+          _id: 'demo-int-1',
+          id: 'demo-int-1',
+          title: 'Software Engineering Intern',
+          company: 'Innovation Labs',
+          location: 'New York, NY',
+          salary: '$3,000/month',
+          type: 'Internship',
+          description: 'Join our summer internship program...',
+          requirements: ['Programming basics', 'CS student', 'Eager to learn'],
+          postedDate: new Date().toISOString(),
+          postedBy: 'innovation-labs'
+        },
+        {
+          _id: 'demo-int-2',
+          id: 'demo-int-2', 
+          title: 'UI/UX Design Intern',
+          company: 'Creative Studio',
+          location: 'Remote',
+          salary: '$2,500/month',
+          type: 'Internship',
+          description: 'Work with our design team...',
+          requirements: ['Design tools', 'Portfolio', 'Creative mindset'],
+          postedDate: new Date().toISOString(),
+          postedBy: 'creative-studio'
+        }
+      ];
       
-      setAllItems(sampleJobs.map(j => ({ ...j, type: 'job' })));
+      setAllItems([
+        ...sampleJobs.map(j => ({ ...j, type: 'job' })),
+        ...sampleInternships.map(i => ({ ...i, type: 'internship' }))
+      ]);
     }
   }, []);
 

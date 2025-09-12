@@ -2,7 +2,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import logo from "../Images/logo.png";
 
 const Footer = () => {
   return (
@@ -61,9 +60,13 @@ const Footer = () => {
 
         <div className="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center mb-4 md:mb-0">
-            
+            <img
+              src="/careersnap-logo-dark.svg"
+              alt="CareerSnap - AI-Powered Career Matching"
+              className="h-8 w-auto object-contain"
+            />
           </div>
-          <p className="text-gray-300">© 2024 SmartHire. All rights reserved.</p>
+          <p className="text-gray-300">© 2024 CareerSnap. All rights reserved.</p>
         </div>
       </div>
     </footer>

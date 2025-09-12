@@ -11,10 +11,51 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { 
+  User, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Linkedin, 
+  Github, 
+  Globe, 
+  Save, 
+  LogOut, 
+  Plus, 
+  Trash2, 
+  Edit, 
+  Award, 
+  Briefcase, 
+  GraduationCap, 
+  FileText, 
+  Target, 
+  CheckCircle, 
+  Clock, 
+  Star,
+  Calendar,
+  Building,
+  ExternalLink,
+  Download,
+  Eye,
+  Camera,
+  Settings,
+  Sparkles,
+  TrendingUp,
+  Heart,
+  MessageSquare,
+  Bell,
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp,
+  ShieldCheck,
+  Zap,
+  UploadCloud,
+  CheckSquare,
+} from 'lucide-react';
+
 // Lazy-load heavy resume management to speed initial profile render
 const ResumeUpload = React.lazy(() => import('@/components/ResumeUpload'));
 
-// Define interface for profile data
 interface ProfileData {
   personalInfo?: {
     firstName?: string;
@@ -54,52 +95,13 @@ interface ProfileData {
   resumeUrl?: string;
 }
 
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Linkedin, 
-  Github, 
-  Globe, 
-  Upload, 
-  Save, 
-  LogOut, 
-  Plus, 
-  Trash2, 
-  Edit, 
-  Award, 
-  Briefcase, 
-  GraduationCap, 
-  FileText, 
-  Target, 
-  CheckCircle, 
-  Clock, 
-  Star,
-  Calendar,
-  Building,
-  ExternalLink,
-  Download,
-  Eye,
-  EyeOff,
-  Camera,
-  Settings,
-  Sparkles,
-  TrendingUp,
-  Heart,
-  MessageSquare,
-  Bell,
-  ArrowLeft,
-  ArrowRight
-} from 'lucide-react';
-
 const UserProfile = () => {
   const { userData, logout } = useAuthContext();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const fileInputRef = useRef(null);
-  const resumeInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const resumeInputRef = useRef<HTMLInputElement>(null);
   const [appliedCount, setAppliedCount] = useState(0);
   const [profileCompletion, setProfileCompletion] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
@@ -136,6 +138,23 @@ const UserProfile = () => {
   });
 
   const [avatarPreview, setAvatarPreview] = useState(form.avatar);
+  const [expandedSections, setExpandedSections] = useState<{
+    personal: boolean;
+    professional: boolean;
+    skills: boolean;
+    education: boolean;
+    experience: boolean;
+    social: boolean;
+    documents: boolean;
+  }>({
+    personal: true,
+    professional: true,
+    skills: true,
+    education: true,
+    experience: true,
+    social: true,
+    documents: true,
+  });
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -143,7 +162,6 @@ const UserProfile = () => {
         const token = localStorage.getItem('token');
         const headers = { Authorization: `Bearer ${token}` } as HeadersInit;
 
-        // Fetch both endpoints in parallel to reduce TTFB
         const [authRes, profileRes] = await Promise.all([
           fetch('/api/auth/profile', { headers }),
           fetch('/api/user-profile/', { headers })
@@ -160,13 +178,13 @@ const UserProfile = () => {
           const profileResult = await profileRes.json();
           profileData = (profileResult.data || profileResult) as ProfileData;
         }
-        
-        // Merge auth data with profile data
+
         const ensureArray = <T,>(val: unknown): T[] => Array.isArray(val) ? (val as T[]) : [];
         const getProfilePicture = (pd: ProfileData | undefined): string => {
           const maybe = pd as ProfileData & { profilePicture?: string; avatar?: string };
           return (maybe?.profilePicture || maybe?.avatar || '') as string;
         };
+
         const combinedData = {
           ...user,
           ...(profileData.personalInfo || {}),
@@ -180,9 +198,7 @@ const UserProfile = () => {
           avatar: getProfilePicture(profileData) || (user as Record<string, unknown>).avatar || '',
           resume: profileData.resumeUrl || profileData.resume || (user as Record<string, unknown>).resume || '',
         };
-        
-  // console.debug('Combined profile data:', combinedData);
-        
+
         const updatedForm = {
           firstName: combinedData.firstName || '',
           lastName: combinedData.lastName || '',
@@ -212,13 +228,11 @@ const UserProfile = () => {
           instagram: combinedData.instagram || '',
           facebook: combinedData.facebook || '',
         };
-        
+
         setForm(updatedForm);
         setAvatarPreview(combinedData.avatar || '');
         calculateProfileCompletion(updatedForm);
-  // Also sync with backend completion (has section-based flags)
-  fetchCompletionStatus();
-        
+        fetchCompletionStatus();
       } catch (error) {
         console.error('Error fetching profile:', error);
         toast({
@@ -228,7 +242,7 @@ const UserProfile = () => {
         });
       }
     };
-    
+
     if (userData?.email) {
       fetchUserProfile();
     }
@@ -242,10 +256,9 @@ const UserProfile = () => {
     }
   }, [userData?.email]);
 
-  const calculateProfileCompletion = (profileData) => {
-    // Section-based completion to avoid odd percentages like 94%
+  const calculateProfileCompletion = (profileData: typeof form) => {
     const sections = {
-      personalInfo: Boolean(profileData.firstName && profileData.lastName && (profileData.email || '')),
+      personalInfo: Boolean(profileData.firstName && profileData.lastName && profileData.email),
       professionalBio: Boolean(
         profileData.bio || profileData.currentPosition || profileData.currentCompany || profileData.experience || profileData.expectedSalary
       ),
@@ -257,6 +270,7 @@ const UserProfile = () => {
       educationHistory: Array.isArray(profileData.education) && profileData.education.length > 0,
       experienceHistory: Array.isArray(profileData.experienceHistory) && profileData.experienceHistory.length > 0,
     };
+
     const totalSections = Object.keys(sections).length;
     const completedSections = Object.values(sections).filter(Boolean).length;
     setProfileCompletion(Math.round((completedSections / totalSections) * 100));
@@ -277,25 +291,25 @@ const UserProfile = () => {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
     calculateProfileCompletion({ ...form, [name]: value });
   };
 
-  const handleSelectChange = (name, value) => {
+  const handleSelectChange = (name: string, value: string) => {
     setForm(prev => ({ ...prev, [name]: value }));
     calculateProfileCompletion({ ...form, [name]: value });
   };
 
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatarPreview(reader.result);
-        setForm(prev => ({ ...prev, avatar: reader.result }));
-        calculateProfileCompletion({ ...form, avatar: reader.result });
+        setAvatarPreview(reader.result as string);
+        setForm(prev => ({ ...prev, avatar: reader.result as string }));
+        calculateProfileCompletion({ ...form, avatar: reader.result as string });
       };
       reader.readAsDataURL(file);
     }
@@ -303,7 +317,6 @@ const UserProfile = () => {
 
   const handleSave = async () => {
     setSaving(true);
-    
     const saveResults = {
       personal: false,
       professional: false,
@@ -313,11 +326,10 @@ const UserProfile = () => {
       experience: false,
       documents: false
     };
-    
+
     try {
       const token = localStorage.getItem('token');
-      console.log('Starting profile save process...');
-      
+
       // Save personal information
       const personalInfoData = {
         firstName: form.firstName,
@@ -326,30 +338,16 @@ const UserProfile = () => {
         phone: form.phone,
         location: form.location
       };
-      
-      console.log('Saving personal info:', personalInfoData);
-      
-      try {
-        const personalRes = await fetch('/api/user-profile/personal-info', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(personalInfoData),
-        });
-        
-        if (personalRes.ok) {
-          saveResults.personal = true;
-          console.log('Personal info saved successfully');
-        } else {
-          const errorData = await personalRes.json();
-          console.error('Personal info save failed:', errorData);
-        }
-      } catch (error) {
-        console.error('Personal info save error:', error);
-      }
-      
+      const personalRes = await fetch('/api/user-profile/personal-info', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(personalInfoData),
+      });
+      if (personalRes.ok) saveResults.personal = true;
+
       // Save professional bio
       const professionalBioData = {
         bio: form.bio,
@@ -361,30 +359,16 @@ const UserProfile = () => {
         expectedSalary: form.expectedSalary,
         interests: form.interests
       };
-      
-      console.log('Saving professional bio:', professionalBioData);
-      
-      try {
-        const professionalRes = await fetch('/api/user-profile/professional-bio', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(professionalBioData),
-        });
-        
-        if (professionalRes.ok) {
-          saveResults.professional = true;
-          console.log('Professional bio saved successfully');
-        } else {
-          const errorData = await professionalRes.json();
-          console.error('Professional bio save failed:', errorData);
-        }
-      } catch (error) {
-        console.error('Professional bio save error:', error);
-      }
-      
+      const professionalRes = await fetch('/api/user-profile/professional-bio', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(professionalBioData),
+      });
+      if (professionalRes.ok) saveResults.professional = true;
+
       // Save skills
       const skillsData = {
         technicalSkills: form.skills,
@@ -392,121 +376,63 @@ const UserProfile = () => {
         languages: form.languages || [],
         certifications: form.certifications || []
       };
-      
-      console.log('Saving skills:', skillsData);
-      
-      try {
-        const skillsRes = await fetch('/api/user-profile/skills', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(skillsData),
-        });
-        
-        if (skillsRes.ok) {
-          saveResults.skills = true;
-          console.log('Skills saved successfully');
-        } else {
-          const errorData = await skillsRes.json();
-          console.error('Skills save failed:', errorData);
-        }
-      } catch (error) {
-        console.error('Skills save error:', error);
-      }
-      
+      const skillsRes = await fetch('/api/user-profile/skills', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(skillsData),
+      });
+      if (skillsRes.ok) saveResults.skills = true;
+
       // Save education history
       const educationData = {
         educationHistory: form.education || []
       };
-      
-      console.log('Saving education history:', educationData);
-      
-      try {
-        const educationRes = await fetch('/api/user-profile/education', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(educationData),
-        });
-        
-        if (educationRes.ok) {
-          saveResults.education = true;
-          console.log('Education history saved successfully');
-        } else {
-          const errorData = await educationRes.json();
-          console.error('Education history save failed:', errorData);
-        }
-      } catch (error) {
-        console.error('Education history save error:', error);
-      }
-      
+      const educationRes = await fetch('/api/user-profile/education', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(educationData),
+      });
+      if (educationRes.ok) saveResults.education = true;
+
       // Save experience history
       const experienceData = {
         experienceHistory: form.experienceHistory || []
       };
-      
-      console.log('Saving experience history:', experienceData);
-      
-      try {
-        const experienceRes = await fetch('/api/user-profile/experience', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(experienceData),
-        });
-        
-        if (experienceRes.ok) {
-          saveResults.experience = true;
-          console.log('Experience history saved successfully');
-        } else {
-          const errorData = await experienceRes.json();
-          console.error('Experience history save failed:', errorData);
-        }
-      } catch (error) {
-        console.error('Experience history save error:', error);
-      }
-      
+      const experienceRes = await fetch('/api/user-profile/experience', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(experienceData),
+      });
+      if (experienceRes.ok) saveResults.experience = true;
+
       // Save documents (resume URL if available)
       if (form.resume) {
         const documentsData = {
           resumeUrl: form.resume,
           resumeUploadDate: new Date().toISOString()
         };
-        
-        console.log('Saving documents:', documentsData);
-        
-        try {
-          const documentsRes = await fetch('/api/user-profile/resume', {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(documentsData),
-          });
-          
-          if (documentsRes.ok) {
-            saveResults.documents = true;
-            console.log('Documents saved successfully');
-          } else {
-            const errorData = await documentsRes.json();
-            console.error('Documents save failed:', errorData);
-          }
-        } catch (error) {
-          console.error('Documents save error:', error);
-        }
+        const documentsRes = await fetch('/api/user-profile/resume', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(documentsData),
+        });
+        if (documentsRes.ok) saveResults.documents = true;
       } else {
-        // Mark documents as saved if no resume to save
         saveResults.documents = true;
-        console.log('No documents to save, marking as successful');
       }
-      
+
       // Save social links
       const socialLinksData = {
         linkedin: form.linkedin,
@@ -517,87 +443,52 @@ const UserProfile = () => {
         instagram: form.instagram,
         facebook: form.facebook
       };
-      
-      console.log('Saving social links:', socialLinksData);
-      
-      try {
-        const socialRes = await fetch('/api/user-profile/social-links', {
+      const socialRes = await fetch('/api/user-profile/social-links', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(socialLinksData),
+      });
+      if (socialRes.ok) saveResults.social = true;
+
+      // Save profile picture
+      if (form.avatar) {
+        await fetch('/api/user-profile', {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(socialLinksData),
+          body: JSON.stringify({ profilePicture: form.avatar })
         });
-        
-        if (socialRes.ok) {
-          saveResults.social = true;
-          console.log('Social links saved successfully');
-        } else {
-          const errorData = await socialRes.json();
-          console.error('Social links save failed:', errorData);
-        }
-      } catch (error) {
-        console.error('Social links save error:', error);
       }
 
-      // Save profile picture (avatar) into profile.profilePicture
-      try {
-        if (form.avatar) {
-          await fetch('/api/user-profile', {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ profilePicture: form.avatar })
-          });
-        }
-      } catch (error) {
-        console.error('Profile picture save error:', error);
-      }
-      
-      // Check results and show appropriate message
+      // Show result
       const successCount = Object.values(saveResults).filter(Boolean).length;
       const totalCount = Object.keys(saveResults).length;
-      
-      console.log('Save results:', saveResults);
-      console.log(`Successfully saved ${successCount}/${totalCount} sections`);
-      
+
       if (successCount === totalCount) {
         toast({
           title: "✅ Profile Saved Successfully!",
-          description: `All profile sections have been saved to MongoDB database. Data is now accessible across the application.`,
+          description: `All profile sections have been saved to MongoDB database.`,
           variant: "default",
         });
-        // Refresh Technical Skills from DB to confirm persistence
-        try {
-          const token = localStorage.getItem('token');
-          const res = await fetch('/api/user-profile', { headers: { Authorization: `Bearer ${token}` } });
-          if (res.ok) {
-            const latest = await res.json();
-            const latestSkills = latest?.skills || latest?.data?.skills || '';
-            setForm(prev => ({ ...prev, skills: latestSkills }));
-          }
-        } catch (e) {
-          // no-op
-        }
-        // Sync completion bar with backend post-save
         await fetchCompletionStatus();
       } else if (successCount > 0) {
         toast({
           title: "⚠️ Partially Saved",
-          description: `${successCount}/${totalCount} sections saved successfully. Some data may not have been updated.`,
+          description: `${successCount}/${totalCount} sections saved successfully.`,
           variant: "default",
         });
       } else {
         toast({
           title: "❌ Save Failed",
-          description: "Unable to save profile data to database. Please check your connection and try again.",
+          description: "Unable to save profile data. Please check your connection.",
           variant: "destructive",
         });
       }
-      
     } catch (error) {
       console.error('Error saving profile:', error);
       toast({
@@ -616,15 +507,28 @@ const UserProfile = () => {
       const response = await fetch('/api/auth/profile', {
         headers: { Authorization: `Bearer ${token}` }
       });
-
       if (response.ok) {
         const data = await response.json();
-        alert(`Current Profile Data in Database:\n\n- Name: ${data.firstName} ${data.lastName}\n- Email: ${data.email}\n- Phone: ${data.phone || 'Not provided'}\n- Location: ${data.location || 'Not provided'}\n- Current Position: ${data.currentPosition || 'Not provided'}\n- Current Company: ${data.currentCompany || 'Not provided'}\n- Experience: ${data.experience || 'Not provided'}\n- Education: ${data.education || 'Not provided'}\n- Skills: ${data.skills || 'Not provided'}\n- Expected Salary: ${data.expectedSalary || 'Not provided'}\n- LinkedIn: ${data.linkedin || 'Not provided'}\n- GitHub: ${data.github || 'Not provided'}\n- Website: ${data.website || 'Not provided'}\n- Bio: ${data.bio || 'Not provided'}`);
+        alert(`Current Profile Data in Database:
+- Name: ${data.firstName} ${data.lastName}
+- Email: ${data.email}
+- Phone: ${data.phone || 'Not provided'}
+- Location: ${data.location || 'Not provided'}
+- Current Position: ${data.currentPosition || 'Not provided'}
+- Current Company: ${data.currentCompany || 'Not provided'}
+- Experience: ${data.experience || 'Not provided'}
+- Education: ${data.education || 'Not provided'}
+- Skills: ${data.skills || 'Not provided'}
+- Expected Salary: ${data.expectedSalary || 'Not provided'}
+- LinkedIn: ${data.linkedin || 'Not provided'}
+- GitHub: ${data.github || 'Not provided'}
+- Website: ${data.website || 'Not provided'}
+- Bio: ${data.bio || 'Not provided'}`);
       } else {
         alert('Error fetching saved data. Please try again.');
       }
     } catch (error) {
-      console.error('Error fetching saved data:', error);
+      console.error('Error fetching saved ', error);
       alert('Error fetching saved data. Please try again.');
     }
   };
@@ -647,7 +551,7 @@ const UserProfile = () => {
   const addExperience = () => {
     setForm(prev => ({
       ...prev,
-  experienceHistory: [...(Array.isArray(prev.experienceHistory) ? prev.experienceHistory : []), {
+      experienceHistory: [...(Array.isArray(prev.experienceHistory) ? prev.experienceHistory : []), {
         company: '',
         position: '',
         startDate: '',
@@ -658,740 +562,799 @@ const UserProfile = () => {
     }));
   };
 
-  const updateEducation = (index, field, value) => {
+  const updateEducation = (index: number, field: string, value: string) => {
     setForm(prev => ({
       ...prev,
-      education: prev.education.map((edu, i) => 
+      education: prev.education.map((edu, i) =>
         i === index ? { ...edu, [field]: value } : edu
       )
     }));
   };
 
-  const updateExperience = (index, field, value) => {
+  const updateExperience = (index: number, field: string, value: string) => {
     setForm(prev => ({
       ...prev,
-  experienceHistory: (Array.isArray(prev.experienceHistory) ? prev.experienceHistory : []).map((exp, i) => 
+      experienceHistory: (Array.isArray(prev.experienceHistory) ? prev.experienceHistory : []).map((exp, i) =>
         i === index ? { ...exp, [field]: value } : exp
       )
     }));
   };
 
-  const removeEducation = (index) => {
+  const removeEducation = (index: number) => {
     setForm(prev => ({
       ...prev,
       education: prev.education.filter((_, i) => i !== index)
     }));
   };
 
-  const removeExperience = (index) => {
+  const removeExperience = (index: number) => {
     setForm(prev => ({
       ...prev,
-  experienceHistory: (Array.isArray(prev.experienceHistory) ? prev.experienceHistory : []).filter((_, i) => i !== index)
+      experienceHistory: (Array.isArray(prev.experienceHistory) ? prev.experienceHistory : []).filter((_, i) => i !== index)
     }));
   };
 
+  const toggleSection = (section: keyof typeof expandedSections) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading user profile...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="max-w-7xl mx-auto relative">
-        {/* Header */}
-        <div className="p-4 border-b bg-white/80 backdrop-blur-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => navigate(-1)}
-                className="rounded-full"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">User Profile</h1>
-                <p className="text-gray-600">Complete your profile with our split-screen interface</p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                onClick={viewSavedData} 
-                variant="outline"
-                className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                View Data
-              </Button>
-              <Button
-                onClick={logout} 
-                variant="outline" 
-                className="text-red-600 border-red-300 hover:bg-red-50"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pb-24">
+      {/* Header */}
+      <div className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-gray-200 px-4 py-4 shadow-sm">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate(-1)}
+            className="rounded-full p-2"
+          >
+            <ArrowLeft className="h-5 w-5 text-gray-700" />
+          </Button>
+          
+          <div className="text-center flex-1">
+            <h1 className="text-xl font-bold text-gray-900">My Profile</h1>
+            <p className="text-sm text-gray-500">Complete your profile to stand out</p>
+          </div>
+
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={viewSavedData}
+            className="rounded-full p-2 text-gray-700 hover:bg-gray-100"
+          >
+            <Eye className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 pt-4 pb-24">
+        {/* Profile Completion Ring */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="relative">
+            <svg width="100" height="100" className="transform -rotate-90">
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                fill="transparent"
+                stroke="#e5e7eb"
+                strokeWidth="8"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                fill="transparent"
+                stroke="url(#gradient)"
+                strokeWidth="8"
+                strokeDasharray={`${(profileCompletion / 100) * 283} 283`}
+                strokeLinecap="round"
+                className="transition-all duration-1000 ease-out"
+              />
+              <defs>
+                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#3b82f6" />
+                  <stop offset="100%" stopColor="#8b5cf6" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                {profileCompletion}%
+              </span>
             </div>
           </div>
+          <p className="text-sm text-gray-600 mt-2">Profile Completion</p>
         </div>
 
-        <div className="flex h-[calc(100vh-120px)]">
-          {/* Fixed Sidebar */}
-          <div className="w-1/4 border-r bg-white/80 backdrop-blur-sm">
-            <div className="p-6 h-full overflow-y-auto">
-
-              <Card className="border-0 shadow-xl bg-white/90">
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center mb-6">
-                    <div className="relative mb-4">
-                      <Avatar className="w-24 h-24 border-4 border-white shadow-xl">
-                        <AvatarImage src={avatarPreview} />
-                        <AvatarFallback className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                          {form.firstName?.[0]?.toUpperCase() || form.lastName?.[0]?.toUpperCase() || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <Button
-                        size="icon"
-                        className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-blue-600 text-white hover:bg-blue-700"
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        <Camera className="h-4 w-4" />
-                      </Button>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        ref={fileInputRef}
-                        style={{ display: 'none' }}
-                        onChange={handleAvatarChange}
-                      />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 text-center">
-                      {form.firstName} {form.lastName}
-                    </h3>
-                    <p className="text-gray-600 text-sm text-center">{form.email}</p>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Briefcase className="h-3 w-3" />
-                        {appliedCount} applications
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Star className="h-3 w-3" />
-                        {userData?.role || 'User'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Profile Stats */}
-                  <div className="space-y-4 mb-6">
-                    <div className="text-center p-3 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{appliedCount}</div>
-                      <div className="text-xs text-gray-600">Applications</div>
-                    </div>
-                    <div className="text-center p-3 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{profileCompletion}%</div>
-                      <div className="text-xs text-gray-600">Complete</div>
-                    </div>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="mb-6">
-                    <div className="flex justify-between text-sm text-gray-600 mb-2">
-                      <span>Profile Completion</span>
-                      <span>{profileCompletion}%</span>
-                    </div>
-                    <Progress value={profileCompletion} className="h-2" />
-                  </div>
-
-                  {/* Profile Checklist */}
-                  <div className="space-y-2 text-sm mb-6">
-                    <div className="font-medium text-gray-900 mb-3">Profile Checklist</div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className={`h-4 w-4 ${(form.firstName && form.lastName) ? 'text-green-500' : 'text-gray-300'}`} />
-                      <span className={(form.firstName && form.lastName) ? 'text-gray-700' : 'text-gray-400'}>Name</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className={`h-4 w-4 ${form.bio ? 'text-green-500' : 'text-gray-300'}`} />
-                      <span className={form.bio ? 'text-gray-700' : 'text-gray-400'}>Bio</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className={`h-4 w-4 ${form.skills ? 'text-green-500' : 'text-gray-300'}`} />
-                      <span className={form.skills ? 'text-gray-700' : 'text-gray-400'}>Skills</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className={`h-4 w-4 ${form.resume ? 'text-green-500' : 'text-gray-300'}`} />
-                      <span className={form.resume ? 'text-gray-700' : 'text-gray-400'}>Resume</span>
-                    </div>
-                  </div>
-
-                  {/* Save Button */}
-                  <Button 
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  >
-                    {saving ? (
-                      <>
-                        <Clock className="h-4 w-4 mr-2 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Profile
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
+        {/* Avatar Section */}
+        <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm rounded-2xl mb-8 overflow-hidden">
+          <CardContent className="p-6 text-center">
+            <div className="relative inline-block">
+              <Avatar className="w-24 h-24 border-4 border-white shadow-lg mx-auto">
+                <AvatarImage src={avatarPreview} />
+                <AvatarFallback className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+                  {form.firstName?.[0]?.toUpperCase() || form.lastName?.[0]?.toUpperCase() || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <Button
+                size="icon"
+                className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-300"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Camera className="h-5 w-5" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  onChange={handleAvatarChange}
+                />
+              </Button>
             </div>
-          </div>
+            <h2 className="text-2xl font-bold text-gray-900 mt-4">
+              {form.firstName} {form.lastName}
+            </h2>
+            <p className="text-gray-600 text-sm">{form.email}</p>
+            <div className="flex items-center justify-center gap-6 mt-3 text-xs text-gray-500">
+              <div className="flex items-center gap-1">
+                <Briefcase className="h-3 w-3" />
+                <span>{appliedCount} apps</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Star className="h-3 w-3" />
+                <span>{userData?.role || 'User'}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Scrollable Main Form */}
-          <div className="w-3/4 overflow-y-auto">
-            <div className="p-6">
-              <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-8">
-                  <div className="space-y-8">
-                  
-                  {/* Personal Information */}
-                  <div>
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="p-2 rounded-lg bg-blue-100">
-                        <User className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <h2 className="text-2xl font-bold text-gray-900">Personal Information</h2>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <Label htmlFor="firstName">First Name *</Label>
-                        <Input
-                          id="firstName"
-                          name="firstName"
-                          value={form.firstName}
-                          onChange={handleChange}
-                          placeholder="Enter your first name"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="lastName">Last Name *</Label>
-                        <Input
-                          id="lastName"
-                          name="lastName"
-                          value={form.lastName}
-                          onChange={handleChange}
-                          placeholder="Enter your last name"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="email">Email Address *</Label>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          value={form.email}
-                          onChange={handleChange}
-                          placeholder="your.email@example.com"
-                          disabled
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="phone">Phone Number</Label>
-                        <Input
-                          id="phone"
-                          name="phone"
-                          value={form.phone}
-                          onChange={handleChange}
-                          placeholder="+1 (555) 123-4567"
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Label htmlFor="location">Location</Label>
-                        <Input
-                          id="location"
-                          name="location"
-                          value={form.location}
-                          onChange={handleChange}
-                          placeholder="City, State, Country"
-                        />
-                      </div>
-                    </div>
+        {/* Form Sections */}
+        <div className="space-y-6">
+          {/* Personal Information */}
+          <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm rounded-2xl">
+            <CardHeader className="p-6 cursor-pointer" onClick={() => toggleSection('personal')}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-blue-100">
+                    <User className="h-5 w-5 text-blue-600" />
                   </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+                </div>
+                <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${expandedSections.personal ? 'rotate-180' : ''}`} />
+              </div>
+            </CardHeader>
+            {expandedSections.personal && (
+              <CardContent className="pt-0 px-6 pb-6 space-y-4">
+                <div>
+                  <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">First Name *</Label>
+                  <Input
+                    id="firstName"
+                    name="firstName"
+                    value={form.firstName}
+                    onChange={handleChange}
+                    placeholder="Enter your first name"
+                    className="h-12 text-base"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last Name *</Label>
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    value={form.lastName}
+                    onChange={handleChange}
+                    placeholder="Enter your last name"
+                    className="h-12 text-base"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email Address *</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="your.email@example.com"
+                    disabled
+                    className="h-12 text-base bg-gray-50 text-gray-500"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone" className="text-sm font-medium text-gray-700">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    value={form.phone}
+                    onChange={handleChange}
+                    placeholder="+1 (555) 123-4567"
+                    className="h-12 text-base"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="location" className="text-sm font-medium text-gray-700">Location</Label>
+                  <Input
+                    id="location"
+                    name="location"
+                    value={form.location}
+                    onChange={handleChange}
+                    placeholder="City, State, Country"
+                    className="h-12 text-base"
+                  />
+                </div>
+              </CardContent>
+            )}
+          </Card>
 
-                  {/* Professional Information */}
-                  <div>
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="p-2 rounded-lg bg-green-100">
-                        <Briefcase className="h-5 w-5 text-green-600" />
-                      </div>
-                      <h2 className="text-2xl font-bold text-gray-900">Professional Information</h2>
-                    </div>
-                    
-                    <div className="space-y-6">
-                      <div>
-                        <Label htmlFor="bio">Professional Bio</Label>
-                        <Textarea
-                          id="bio"
-                          name="bio"
-                          value={form.bio}
-                          onChange={handleChange}
-                          placeholder="Tell us about yourself, your experience, and what you're looking for..."
-                          rows={4}
-                        />
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <Label htmlFor="currentPosition">Current Position</Label>
-                          <Input
-                            id="currentPosition"
-                            name="currentPosition"
-                            value={form.currentPosition}
-                            onChange={handleChange}
-                            placeholder="e.g., Senior Software Engineer"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="currentCompany">Current Company</Label>
-                          <Input
-                            id="currentCompany"
-                            name="currentCompany"
-                            value={form.currentCompany}
-                            onChange={handleChange}
-                            placeholder="e.g., Tech Corp Inc."
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="experience">Years of Experience</Label>
-                          <Select value={form.experience} onValueChange={(value) => handleSelectChange('experience', value)}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select experience level" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="0-1">0-1 years</SelectItem>
-                              <SelectItem value="1-3">1-3 years</SelectItem>
-                              <SelectItem value="3-5">3-5 years</SelectItem>
-                              <SelectItem value="5-10">5-10 years</SelectItem>
-                              <SelectItem value="10+">10+ years</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="expectedSalary">Expected Salary</Label>
-                          <Input
-                            id="expectedSalary"
-                            name="expectedSalary"
-                            value={form.expectedSalary}
-                            onChange={handleChange}
-                            placeholder="e.g., $80,000 - $100,000"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="availability">Availability</Label>
-                          <Select value={form.availability} onValueChange={(value) => handleSelectChange('availability', value)}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select availability" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="immediate">Immediate</SelectItem>
-                              <SelectItem value="2-weeks">2 weeks notice</SelectItem>
-                              <SelectItem value="1-month">1 month notice</SelectItem>
-                              <SelectItem value="flexible">Flexible</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="remotePreference">Work Preference</Label>
-                          <Select value={form.remotePreference} onValueChange={(value) => handleSelectChange('remotePreference', value)}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select work preference" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="remote">Remote</SelectItem>
-                              <SelectItem value="hybrid">Hybrid</SelectItem>
-                              <SelectItem value="onsite">On-site</SelectItem>
-                              <SelectItem value="flexible">Flexible</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="interests">Interests & Goals</Label>
-                        <Textarea
-                          id="interests"
-                          name="interests"
-                          value={form.interests}
-                          onChange={handleChange}
-                          placeholder="What are your career interests and goals?"
-                          rows={3}
-                        />
-                      </div>
-                    </div>
+          {/* Professional Information */}
+          <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm rounded-2xl">
+            <CardHeader className="p-6 cursor-pointer" onClick={() => toggleSection('professional')}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-green-100">
+                    <Briefcase className="h-5 w-5 text-green-600" />
                   </div>
-
-                  {/* Skills & Qualifications */}
+                  <h3 className="text-lg font-semibold text-gray-900">Professional Information</h3>
+                </div>
+                <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${expandedSections.professional ? 'rotate-180' : ''}`} />
+              </div>
+            </CardHeader>
+            {expandedSections.professional && (
+              <CardContent className="pt-0 px-6 pb-6 space-y-4">
+                <div>
+                  <Label htmlFor="bio" className="text-sm font-medium text-gray-700">Professional Bio</Label>
+                  <Textarea
+                    id="bio"
+                    name="bio"
+                    value={form.bio}
+                    onChange={handleChange}
+                    placeholder="Tell us about yourself, your experience, and what you're looking for..."
+                    rows={4}
+                    className="h-32 text-base resize-none"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="p-2 rounded-lg bg-purple-100">
-                        <Award className="h-5 w-5 text-purple-600" />
-                      </div>
-                      <h2 className="text-2xl font-bold text-gray-900">Skills & Qualifications</h2>
-                    </div>
-                    
-                    <div className="space-y-6">
-                      <div>
-                        <Label htmlFor="skills">Technical Skills</Label>
-                        <Textarea
-                          id="skills"
-                          name="skills"
-                          value={form.skills}
-                          onChange={handleChange}
-                          placeholder="List your technical skills (e.g., JavaScript, React, Node.js, Python, SQL...)"
-                          rows={3}
-                        />
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <Label>Languages</Label>
-                          <div className="mt-2">
-                            {form.languages && form.languages.length > 0 ? (
-                              <div className="flex flex-wrap gap-2">
-                                {form.languages.map((lang, index) => (
-                                  <Badge key={index} variant="secondary" className="bg-purple-50 text-purple-700">
-                                    {lang}
-                                  </Badge>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="text-gray-500 text-sm">No languages added yet</p>
-                            )}
-                          </div>
-                        </div>
-                        <div>
-                          <Label>Certifications</Label>
-                          <div className="mt-2">
-                            {form.certifications && form.certifications.length > 0 ? (
-                              <div className="flex flex-wrap gap-2">
-                                {form.certifications.map((cert, index) => (
-                                  <Badge key={index} variant="secondary" className="bg-green-50 text-green-700">
-                                    {cert}
-                                  </Badge>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="text-gray-500 text-sm">No certifications added yet</p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <Label htmlFor="currentPosition" className="text-sm font-medium text-gray-700">Current Position</Label>
+                    <Input
+                      id="currentPosition"
+                      name="currentPosition"
+                      value={form.currentPosition}
+                      onChange={handleChange}
+                      placeholder="e.g., Senior Software Engineer"
+                      className="h-12 text-base"
+                    />
                   </div>
-
-                  {/* Education */}
                   <div>
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-indigo-100">
-                          <GraduationCap className="h-5 w-5 text-indigo-600" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-gray-900">Education</h2>
-                      </div>
-                      <Button onClick={addEducation} variant="outline" size="sm">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Education
-                      </Button>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {form.education && form.education.length > 0 ? (
-                        form.education.map((edu, index) => (
-                          <Card key={index} className="border border-gray-200">
-                            <CardContent className="p-4">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                  <Label>Institution</Label>
-                                  <Input
-                                    value={edu.institution || ''}
-                                    onChange={(e) => updateEducation(index, 'institution', e.target.value)}
-                                    placeholder="University/School name"
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Degree</Label>
-                                  <Input
-                                    value={edu.degree || ''}
-                                    onChange={(e) => updateEducation(index, 'degree', e.target.value)}
-                                    placeholder="Bachelor's, Master's, etc."
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Field of Study</Label>
-                                  <Input
-                                    value={edu.field || ''}
-                                    onChange={(e) => updateEducation(index, 'field', e.target.value)}
-                                    placeholder="Computer Science, Business, etc."
-                                  />
-                                </div>
-                                <div>
-                                  <Label>GPA (Optional)</Label>
-                                  <Input
-                                    value={edu.gpa || ''}
-                                    onChange={(e) => updateEducation(index, 'gpa', e.target.value)}
-                                    placeholder="3.8/4.0"
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Start Date</Label>
-                                  <Input
-                                    type="date"
-                                    value={edu.startDate || ''}
-                                    onChange={(e) => updateEducation(index, 'startDate', e.target.value)}
-                                  />
-                                </div>
-                                <div>
-                                  <Label>End Date</Label>
-                                  <Input
-                                    type="date"
-                                    value={edu.endDate || ''}
-                                    onChange={(e) => updateEducation(index, 'endDate', e.target.value)}
-                                  />
-                                </div>
-                                <div className="md:col-span-2">
-                                  <Label>Description</Label>
-                                  <Textarea
-                                    value={edu.description || ''}
-                                    onChange={(e) => updateEducation(index, 'description', e.target.value)}
-                                    placeholder="Relevant coursework, achievements, etc."
-                                    rows={2}
-                                  />
-                                </div>
-                              </div>
-                              <div className="flex justify-end mt-4">
-                                <Button
-                                  onClick={() => removeEducation(index)}
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-red-600 border-red-300 hover:bg-red-50"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Remove
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
+                    <Label htmlFor="currentCompany" className="text-sm font-medium text-gray-700">Current Company</Label>
+                    <Input
+                      id="currentCompany"
+                      name="currentCompany"
+                      value={form.currentCompany}
+                      onChange={handleChange}
+                      placeholder="e.g., Tech Corp Inc."
+                      className="h-12 text-base"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="experience" className="text-sm font-medium text-gray-700">Years of Experience</Label>
+                    <Select value={form.experience} onValueChange={(value) => handleSelectChange('experience', value)}>
+                      <SelectTrigger className="h-12 text-base">
+                        <SelectValue placeholder="Select experience level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0-1">0-1 years</SelectItem>
+                        <SelectItem value="1-3">1-3 years</SelectItem>
+                        <SelectItem value="3-5">3-5 years</SelectItem>
+                        <SelectItem value="5-10">5-10 years</SelectItem>
+                        <SelectItem value="10+">10+ years</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="expectedSalary" className="text-sm font-medium text-gray-700">Expected Salary</Label>
+                    <Input
+                      id="expectedSalary"
+                      name="expectedSalary"
+                      value={form.expectedSalary}
+                      onChange={handleChange}
+                      placeholder="e.g., $80,000 - $100,000"
+                      className="h-12 text-base"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="availability" className="text-sm font-medium text-gray-700">Availability</Label>
+                    <Select value={form.availability} onValueChange={(value) => handleSelectChange('availability', value)}>
+                      <SelectTrigger className="h-12 text-base">
+                        <SelectValue placeholder="Select availability" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="immediate">Immediate</SelectItem>
+                        <SelectItem value="2-weeks">2 weeks notice</SelectItem>
+                        <SelectItem value="1-month">1 month notice</SelectItem>
+                        <SelectItem value="flexible">Flexible</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="remotePreference" className="text-sm font-medium text-gray-700">Work Preference</Label>
+                    <Select value={form.remotePreference} onValueChange={(value) => handleSelectChange('remotePreference', value)}>
+                      <SelectTrigger className="h-12 text-base">
+                        <SelectValue placeholder="Select work preference" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="remote">Remote</SelectItem>
+                        <SelectItem value="hybrid">Hybrid</SelectItem>
+                        <SelectItem value="onsite">On-site</SelectItem>
+                        <SelectItem value="flexible">Flexible</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="interests" className="text-sm font-medium text-gray-700">Interests & Goals</Label>
+                  <Textarea
+                    id="interests"
+                    name="interests"
+                    value={form.interests}
+                    onChange={handleChange}
+                    placeholder="What are your career interests and goals?"
+                    rows={3}
+                    className="h-24 text-base resize-none"
+                  />
+                </div>
+              </CardContent>
+            )}
+          </Card>
+
+          {/* Skills & Qualifications */}
+          <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm rounded-2xl">
+            <CardHeader className="p-6 cursor-pointer" onClick={() => toggleSection('skills')}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-purple-100">
+                    <Award className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Skills & Qualifications</h3>
+                </div>
+                <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${expandedSections.skills ? 'rotate-180' : ''}`} />
+              </div>
+            </CardHeader>
+            {expandedSections.skills && (
+              <CardContent className="pt-0 px-6 pb-6 space-y-4">
+                <div>
+                  <Label htmlFor="skills" className="text-sm font-medium text-gray-700">Technical Skills</Label>
+                  <Textarea
+                    id="skills"
+                    name="skills"
+                    value={form.skills}
+                    onChange={handleChange}
+                    placeholder="List your technical skills (e.g., JavaScript, React, Node.js, Python, SQL...)"
+                    rows={4}
+                    className="h-32 text-base resize-none"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Languages</Label>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {form.languages && form.languages.length > 0 ? (
+                        form.languages.map((lang, index) => (
+                          <Badge key={index} variant="secondary" className="bg-purple-50 text-purple-700 text-sm">
+                            {lang}
+                          </Badge>
                         ))
                       ) : (
-                        <div className="text-center py-8 text-gray-500">
-                          <GraduationCap className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                          <p>No education entries yet</p>
-                          <p className="text-sm">Click "Add Education" to get started</p>
-                        </div>
+                        <p className="text-gray-500 text-sm">No languages added yet</p>
                       )}
                     </div>
                   </div>
-
-                  {/* Experience */}
                   <div>
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-orange-100">
-                          <Briefcase className="h-5 w-5 text-orange-600" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-gray-900">Work Experience</h2>
-                      </div>
-                      <Button onClick={addExperience} variant="outline" size="sm">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Experience
-                      </Button>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {Array.isArray(form.experienceHistory) && form.experienceHistory.length > 0 ? (
-                        form.experienceHistory.map((exp, index) => (
-                          <Card key={index} className="border border-gray-200">
-                            <CardContent className="p-4">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                  <Label>Company</Label>
-                                  <Input
-                                    value={exp.company || ''}
-                                    onChange={(e) => updateExperience(index, 'company', e.target.value)}
-                                    placeholder="Company name"
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Position</Label>
-                                  <Input
-                                    value={exp.position || ''}
-                                    onChange={(e) => updateExperience(index, 'position', e.target.value)}
-                                    placeholder="Job title"
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Start Date</Label>
-                                  <Input
-                                    type="date"
-                                    value={exp.startDate || ''}
-                                    onChange={(e) => updateExperience(index, 'startDate', e.target.value)}
-                                  />
-                                </div>
-                                <div>
-                                  <Label>End Date</Label>
-                                  <Input
-                                    type="date"
-                                    value={exp.endDate || ''}
-                                    onChange={(e) => updateExperience(index, 'endDate', e.target.value)}
-                                    disabled={exp.current}
-                                  />
-                                </div>
-                                <div className="md:col-span-2">
-                                  <div className="flex items-center space-x-2 mb-2">
-                                    <input
-                                      type="checkbox"
-                                      id={`current-${index}`}
-                                      checked={exp.current || false}
-                                      onChange={(e) => updateExperience(index, 'current', e.target.checked)}
-                                      className="rounded border-gray-300"
-                                    />
-                                    <Label htmlFor={`current-${index}`} className="text-sm">
-                                      I currently work here
-                                    </Label>
-                                  </div>
-                                </div>
-                                <div className="md:col-span-2">
-                                  <Label>Description</Label>
-                                  <Textarea
-                                    value={exp.description || ''}
-                                    onChange={(e) => updateExperience(index, 'description', e.target.value)}
-                                    placeholder="Describe your responsibilities and achievements..."
-                                    rows={3}
-                                  />
-                                </div>
-                              </div>
-                              <div className="flex justify-end mt-4">
-                                <Button
-                                  onClick={() => removeExperience(index)}
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-red-600 border-red-300 hover:bg-red-50"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Remove
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
+                    <Label>Certifications</Label>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {form.certifications && form.certifications.length > 0 ? (
+                        form.certifications.map((cert, index) => (
+                          <Badge key={index} variant="secondary" className="bg-green-50 text-green-700 text-sm">
+                            {cert}
+                          </Badge>
                         ))
                       ) : (
-                        <div className="text-center py-8 text-gray-500">
-                          <Briefcase className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                          <p>No work experience entries yet</p>
-                          <p className="text-sm">Click "Add Experience" to get started</p>
-                        </div>
+                        <p className="text-gray-500 text-sm">No certifications added yet</p>
                       )}
                     </div>
-                  </div>
-
-                  {/* Social Links */}
-                  <div>
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="p-2 rounded-lg bg-pink-100">
-                        <Globe className="h-5 w-5 text-pink-600" />
-                      </div>
-                      <h2 className="text-2xl font-bold text-gray-900">Social Links & Portfolio</h2>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <Label htmlFor="linkedin">LinkedIn Profile</Label>
-                        <Input
-                          id="linkedin"
-                          name="linkedin"
-                          value={form.linkedin}
-                          onChange={handleChange}
-                          placeholder="https://linkedin.com/in/yourprofile"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="github">GitHub Profile</Label>
-                        <Input
-                          id="github"
-                          name="github"
-                          value={form.github}
-                          onChange={handleChange}
-                          placeholder="https://github.com/yourusername"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="website">Personal Website</Label>
-                        <Input
-                          id="website"
-                          name="website"
-                          value={form.website}
-                          onChange={handleChange}
-                          placeholder="https://yourwebsite.com"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="portfolio">Portfolio</Label>
-                        <Input
-                          id="portfolio"
-                          name="portfolio"
-                          value={form.portfolio}
-                          onChange={handleChange}
-                          placeholder="https://yourportfolio.com"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="twitter">Twitter</Label>
-                        <Input
-                          id="twitter"
-                          name="twitter"
-                          value={form.twitter}
-                          onChange={handleChange}
-                          placeholder="https://twitter.com/yourusername"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="instagram">Instagram</Label>
-                        <Input
-                          id="instagram"
-                          name="instagram"
-                          value={form.instagram}
-                          onChange={handleChange}
-                          placeholder="https://instagram.com/yourusername"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Documents */}
-                  <div>
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="p-2 rounded-lg bg-teal-100">
-                        <FileText className="h-5 w-5 text-teal-600" />
-                      </div>
-                      <h2 className="text-2xl font-bold text-gray-900">Documents</h2>
-                    </div>
-                    
-                    {/* Resume Upload with Cloudinary Integration (lazy) */}
-                    <Suspense fallback={<div className="text-sm text-gray-500">Loading resume tools…</div>}>
-                      <ResumeUpload 
-                        onUploadSuccess={(resumeUrl) => {
-                          setForm(prev => ({ ...prev, resume: resumeUrl }));
-                          calculateProfileCompletion({ ...form, resume: resumeUrl });
-                        }}
-                        onDelete={() => {
-                          setForm(prev => ({ ...prev, resume: '' }));
-                          calculateProfileCompletion({ ...form, resume: '' });
-                        }}
-                        currentResumeUrl={form.resume}
-                      />
-                    </Suspense>
                   </div>
                 </div>
               </CardContent>
-            </Card>
-            </div>
-          </div>
+            )}
+          </Card>
+
+          {/* Education */}
+          <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm rounded-2xl">
+            <CardHeader className="p-6 cursor-pointer" onClick={() => toggleSection('education')}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-indigo-100">
+                    <GraduationCap className="h-5 w-5 text-indigo-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Education</h3>
+                </div>
+                <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${expandedSections.education ? 'rotate-180' : ''}`} />
+              </div>
+            </CardHeader>
+            {expandedSections.education && (
+              <CardContent className="pt-0 px-6 pb-6 space-y-4">
+                {form.education && form.education.length > 0 ? (
+                  form.education.map((edu, index) => (
+                    <Card key={index} className="border border-gray-200 p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Institution</Label>
+                          <Input
+                            value={edu.institution || ''}
+                            onChange={(e) => updateEducation(index, 'institution', e.target.value)}
+                            placeholder="University/School name"
+                            className="h-10 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label>Degree</Label>
+                          <Input
+                            value={edu.degree || ''}
+                            onChange={(e) => updateEducation(index, 'degree', e.target.value)}
+                            placeholder="Bachelor's, Master's, etc."
+                            className="h-10 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label>Field of Study</Label>
+                          <Input
+                            value={edu.field || ''}
+                            onChange={(e) => updateEducation(index, 'field', e.target.value)}
+                            placeholder="Computer Science, Business, etc."
+                            className="h-10 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label>GPA (Optional)</Label>
+                          <Input
+                            value={edu.gpa || ''}
+                            onChange={(e) => updateEducation(index, 'gpa', e.target.value)}
+                            placeholder="3.8/4.0"
+                            className="h-10 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label>Start Date</Label>
+                          <Input
+                            type="date"
+                            value={edu.startDate || ''}
+                            onChange={(e) => updateEducation(index, 'startDate', e.target.value)}
+                            className="h-10 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label>End Date</Label>
+                          <Input
+                            type="date"
+                            value={edu.endDate || ''}
+                            onChange={(e) => updateEducation(index, 'endDate', e.target.value)}
+                            className="h-10 text-sm"
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>Description</Label>
+                          <Textarea
+                            value={edu.description || ''}
+                            onChange={(e) => updateEducation(index, 'description', e.target.value)}
+                            placeholder="Relevant coursework, achievements, etc."
+                            rows={2}
+                            className="h-20 text-sm resize-none"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end mt-3">
+                        <Button
+                          onClick={() => removeEducation(index)}
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 border-red-300 hover:bg-red-50 text-xs px-3 py-1"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Remove
+                        </Button>
+                      </div>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <GraduationCap className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <p>No education entries yet</p>
+                    <p className="text-sm">Tap “Add Education” below to get started</p>
+                  </div>
+                )}
+                <Button
+                  onClick={addEducation}
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-4 border-dashed border-gray-300 text-gray-600 hover:bg-gray-50"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Education
+                </Button>
+              </CardContent>
+            )}
+          </Card>
+
+          {/* Work Experience */}
+          <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm rounded-2xl">
+            <CardHeader className="p-6 cursor-pointer" onClick={() => toggleSection('experience')}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-orange-100">
+                    <Briefcase className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Work Experience</h3>
+                </div>
+                <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${expandedSections.experience ? 'rotate-180' : ''}`} />
+              </div>
+            </CardHeader>
+            {expandedSections.experience && (
+              <CardContent className="pt-0 px-6 pb-6 space-y-4">
+                {Array.isArray(form.experienceHistory) && form.experienceHistory.length > 0 ? (
+                  form.experienceHistory.map((exp, index) => (
+                    <Card key={index} className="border border-gray-200 p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Company</Label>
+                          <Input
+                            value={exp.company || ''}
+                            onChange={(e) => updateExperience(index, 'company', e.target.value)}
+                            placeholder="Company name"
+                            className="h-10 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label>Position</Label>
+                          <Input
+                            value={exp.position || ''}
+                            onChange={(e) => updateExperience(index, 'position', e.target.value)}
+                            placeholder="Job title"
+                            className="h-10 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label>Start Date</Label>
+                          <Input
+                            type="date"
+                            value={exp.startDate || ''}
+                            onChange={(e) => updateExperience(index, 'startDate', e.target.value)}
+                            className="h-10 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label>End Date</Label>
+                          <Input
+                            type="date"
+                            value={exp.endDate || ''}
+                            onChange={(e) => updateExperience(index, 'endDate', e.target.value)}
+                            disabled={exp.current}
+                            className="h-10 text-sm"
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <div className="flex items-center space-x-2 mb-3">
+                            <input
+                              type="checkbox"
+                              id={`current-${index}`}
+                              checked={exp.current || false}
+                              onChange={(e) => updateExperience(index, 'current', e.target.checked.toString())}
+                              className="rounded border-gray-300"
+                            />
+                            <Label htmlFor={`current-${index}`} className="text-sm">
+                              I currently work here
+                            </Label>
+                          </div>
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>Description</Label>
+                          <Textarea
+                            value={exp.description || ''}
+                            onChange={(e) => updateExperience(index, 'description', e.target.value)}
+                            placeholder="Describe your responsibilities and achievements..."
+                            rows={3}
+                            className="h-24 text-sm resize-none"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end mt-3">
+                        <Button
+                          onClick={() => removeExperience(index)}
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 border-red-300 hover:bg-red-50 text-xs px-3 py-1"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Remove
+                        </Button>
+                      </div>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Briefcase className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <p>No work experience entries yet</p>
+                    <p className="text-sm">Tap “Add Experience” below to get started</p>
+                  </div>
+                )}
+                <Button
+                  onClick={addExperience}
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-4 border-dashed border-gray-300 text-gray-600 hover:bg-gray-50"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Experience
+                </Button>
+              </CardContent>
+            )}
+          </Card>
+
+          {/* Social Links */}
+          <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm rounded-2xl">
+            <CardHeader className="p-6 cursor-pointer" onClick={() => toggleSection('social')}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-pink-100">
+                    <Globe className="h-5 w-5 text-pink-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Social Links & Portfolio</h3>
+                </div>
+                <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${expandedSections.social ? 'rotate-180' : ''}`} />
+              </div>
+            </CardHeader>
+            {expandedSections.social && (
+              <CardContent className="pt-0 px-6 pb-6 space-y-4">
+                <div>
+                  <Label htmlFor="linkedin">LinkedIn Profile</Label>
+                  <Input
+                    id="linkedin"
+                    name="linkedin"
+                    value={form.linkedin}
+                    onChange={handleChange}
+                    placeholder="https://linkedin.com/in/yourprofile"
+                    className="h-12 text-base"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="github">GitHub Profile</Label>
+                  <Input
+                    id="github"
+                    name="github"
+                    value={form.github}
+                    onChange={handleChange}
+                    placeholder="https://github.com/yourusername"
+                    className="h-12 text-base"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="website">Personal Website</Label>
+                  <Input
+                    id="website"
+                    name="website"
+                    value={form.website}
+                    onChange={handleChange}
+                    placeholder="https://yourwebsite.com"
+                    className="h-12 text-base"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="portfolio">Portfolio</Label>
+                  <Input
+                    id="portfolio"
+                    name="portfolio"
+                    value={form.portfolio}
+                    onChange={handleChange}
+                    placeholder="https://yourportfolio.com"
+                    className="h-12 text-base"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="twitter">Twitter</Label>
+                  <Input
+                    id="twitter"
+                    name="twitter"
+                    value={form.twitter}
+                    onChange={handleChange}
+                    placeholder="https://twitter.com/yourusername"
+                    className="h-12 text-base"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="instagram">Instagram</Label>
+                  <Input
+                    id="instagram"
+                    name="instagram"
+                    value={form.instagram}
+                    onChange={handleChange}
+                    placeholder="https://instagram.com/yourusername"
+                    className="h-12 text-base"
+                  />
+                </div>
+              </CardContent>
+            )}
+          </Card>
+
+          {/* Documents */}
+          <Card className="border-0 shadow-md bg-white/80 backdrop-blur-sm rounded-2xl">
+            <CardHeader className="p-6 cursor-pointer" onClick={() => toggleSection('documents')}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-teal-100">
+                    <FileText className="h-5 w-5 text-teal-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Documents</h3>
+                </div>
+                <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${expandedSections.documents ? 'rotate-180' : ''}`} />
+              </div>
+            </CardHeader>
+            {expandedSections.documents && (
+              <CardContent className="pt-0 px-6 pb-6">
+                <Suspense fallback={<div className="text-sm text-gray-500 text-center py-8">Loading resume tools…</div>}>
+                  <ResumeUpload 
+                    onUploadSuccess={(resumeUrl) => {
+                      setForm(prev => ({ ...prev, resume: resumeUrl }));
+                      calculateProfileCompletion({ ...form, resume: resumeUrl });
+                    }}
+                    onDelete={() => {
+                      setForm(prev => ({ ...prev, resume: '' }));
+                      calculateProfileCompletion({ ...form, resume: '' });
+                    }}
+                    currentResumeUrl={form.resume}
+                  />
+                </Suspense>
+              </CardContent>
+            )}
+          </Card>
+        </div>
+      </div>
+
+      {/* Sticky Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-4 z-40">
+        <div className="max-w-7xl mx-auto flex gap-3">
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 rounded-2xl shadow-lg transition-all duration-300"
+          >
+            {saving ? (
+              <>
+                <Clock className="h-5 w-5 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-5 w-5 mr-2" />
+                Save All Changes
+              </>
+            )}
+          </Button>
         </div>
       </div>
     </div>

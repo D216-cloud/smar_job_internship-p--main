@@ -1,7 +1,6 @@
 import { Home, BarChart, User, Briefcase, LogOut, PlusCircle } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuthContext } from "@/context/AuthContext";
-import logo from "../../Images/logo.png";
 
 const companyLinks = [
   { name: "Dashboard", path: "/company/dashboard", icon: Home },
@@ -19,7 +18,11 @@ export default function Sidebar() {
     <aside className="flex flex-col h-screen w-64 bg-white shadow-lg border-r">
       {/* Logo and User Info */}
       <div className="flex flex-col items-center py-8 border-b">
-        <img src={logo} alt="Logo" className="h-11 mb-2" />
+        <img 
+          src="/careersnap-logo.svg" 
+          alt="CareerSnap - AI-Powered Career Matching" 
+          className="h-12 mb-3 transition-all duration-300 hover:scale-105" 
+        />
         <div className="font-bold text-lg">{userData?.name || "Company Name"}</div>
         <div className="text-xs text-gray-500">{userData?.email}</div>
       </div>
