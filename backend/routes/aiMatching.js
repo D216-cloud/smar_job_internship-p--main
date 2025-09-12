@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const UserProfile = require('../models/userProfile');
 const Job = require('../models/job');
-// const { GoogleGenerativeAI } = require('@google/generative-ai');
-const { generateJSON, getDeepseekConfig } = require('../utils/llmClient');
+// Switch AI provider to Gemini
+const { generateStrictJSON, parseJsonRobust, isConfigured: isGeminiConfigured } = require('../utils/geminiClient');
 const { localFallbackScore } = require('../utils/localScorer');
 const cloudinary = require('cloudinary').v2;
 const pdfParse = require('pdf-parse');
@@ -17,8 +17,8 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// DeepSeek config check
-const deepseekCfg = getDeepseekConfig();
+// Gemini config check
+const geminiOk = isGeminiConfigured();
 
 // Error handling middleware
 const asyncHandler = (fn) => (req, res, next) => {
@@ -297,7 +297,7 @@ router.post('/match', authMiddleware, async (req, res) => {
       }
     })();
 
-    // Create concise prompt for DeepSeek
+    // Create concise prompt for Gemini
     const prompt = `
     You are an AI job matching expert. Analyze the match between a candidate and a job position.
 
@@ -329,9 +329,9 @@ router.post('/match', authMiddleware, async (req, res) => {
     Focus on technical skills match, experience level alignment, and job requirements coverage.
     `;
 
-    // Call DeepSeek with a strict time budget; fall back if it exceeds
-    console.log('🤖 Calling DeepSeek with prompt length:', prompt.length);
-    if (!deepseekCfg.ok) {
+    // Call Gemini with a strict time budget; fall back if it exceeds
+    console.log('🤖 Calling Gemini with prompt length:', prompt.length);
+    if (!geminiOk) {
       // If AI isn’t configured, immediately return fallback for speed
       const out = { success: true, match: fallback, jobTitle: job.title, companyName: job.company, source: 'fallback' };
       matchCache.set(cacheKey, { ...out, expires: Date.now() + 5 * 60 * 1000 });
@@ -339,7 +339,7 @@ router.post('/match', authMiddleware, async (req, res) => {
     }
 
     const TIME_BUDGET = fastFirst ? 18000 : 22000;
-    const genPromise = generateJSON(prompt, { timeoutMs: TIME_BUDGET });
+    const genPromise = generateStrictJSON(prompt, { timeoutMs: TIME_BUDGET });
     const timerPromise = new Promise(resolve => setTimeout(() => resolve({ ok: false, text: '', error: 'timeout' }), TIME_BUDGET + 2000));
     const gen = await Promise.race([genPromise, timerPromise]);
 
@@ -351,29 +351,23 @@ router.post('/match', authMiddleware, async (req, res) => {
     }
 
     const text = gen.text || '';
-    console.log('✅ DeepSeek response received, length:', text.length);
-    console.log('📝 DeepSeek response preview:', text.substring(0, 200) + '...');
+    console.log('✅ Gemini response received, length:', text.length);
+    console.log('📝 Gemini response preview:', text.substring(0, 200) + '...');
 
     // Parse the JSON response
     let aiAnalysis;
     try {
-      // Extract JSON from the response (in case there's extra text or code fences)
-      const cleaned = text.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
-      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        aiAnalysis = JSON.parse(jsonMatch[0]);
-        
+      // Robustly parse JSON from the response
+      aiAnalysis = parseJsonRobust(text);
+      {
         // Validate required fields and provide defaults
         aiAnalysis.fitScore = typeof aiAnalysis.fitScore === 'number' ? Math.min(Math.max(aiAnalysis.fitScore, 0), 100) : 50;
         aiAnalysis.summary = aiAnalysis.summary || 'Analysis completed successfully.';
         aiAnalysis.strengths = Array.isArray(aiAnalysis.strengths) ? aiAnalysis.strengths : ['Profile reviewed'];
         aiAnalysis.weaknesses = Array.isArray(aiAnalysis.weaknesses) ? aiAnalysis.weaknesses : ['Areas for improvement identified'];
         aiAnalysis.recommendations = Array.isArray(aiAnalysis.recommendations) ? aiAnalysis.recommendations : ['Continue professional development'];
-        
-        console.log('✅ Successfully parsed AI response:', aiAnalysis);
-      } else {
-        throw new Error('No JSON found in response');
       }
+      console.log('✅ Successfully parsed AI response:', aiAnalysis);
     } catch (parseError) {
       console.error('❌ Error parsing AI response:', parseError);
       console.error('Raw response:', text.substring(0, 500));
@@ -388,7 +382,7 @@ router.post('/match', authMiddleware, async (req, res) => {
       };
     }
 
-    // ✅ Ensure the terminal log and frontend show the **same final score** from DeepSeek
+    // ✅ Ensure the terminal log and frontend show the same final score from Gemini
     // Log the actual AI result for clarity
     console.log('🎯 Final AI Analysis Result (used in response):', { fitScore: aiAnalysis.fitScore, jobTitle: job.title });
 
@@ -407,7 +401,7 @@ router.post('/match', authMiddleware, async (req, res) => {
         resume_source: userProfile.resume?.fileUrl || 'user_resume',
         job_title: job.title,
         job_id: job._id,
-        steps: ['fetch_pdf', 'extract_text', 'call_deepseek', 'score', 'render'],
+        steps: ['fetch_pdf', 'extract_text', 'call_gemini', 'score', 'render'],
         results: {
           fitScore: aiAnalysis.fitScore,
           matchedSkills: aiAnalysis.strengths,

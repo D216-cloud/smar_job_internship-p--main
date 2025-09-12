@@ -5,7 +5,7 @@ const { PDFExtract } = require('pdf.js-extract');
 const mammoth = require('mammoth');
 const fs = require('fs').promises;
 const path = require('path');
-const { generateJSON, getDeepseekConfig } = require('../utils/llmClient');
+const { generateStrictJSON, parseJsonRobust, isConfigured: isGeminiConfigured } = require('../utils/geminiClient');
 
 // Configure Multer for file upload
 const upload = multer({
@@ -23,8 +23,8 @@ const upload = multer({
   },
 });
 
-// Check DeepSeek config
-const deepseekCfg = getDeepseekConfig();
+// Check Gemini config
+const geminiOk = isGeminiConfigured();
 
 // Extract text from PDF
 async function extractTextFromPDF(filePath) {
@@ -75,7 +75,7 @@ router.post('/extract-text', upload.single('resume'), async (req, res) => {
   }
 });
 
-// Analyze resume with DeepSeek
+// Analyze resume with Gemini
 router.post('/analyze', async (req, res) => {
   const { resumeText, jobTitle, jobDescription, jobRequirements } = req.body;
 
@@ -109,16 +109,16 @@ router.post('/analyze', async (req, res) => {
     - analysis (string with detailed analysis)
     `;
 
-    if (!deepseekCfg.ok) {
-      return res.status(503).json({ error: 'AI service not configured (DEEPSEEK_API_KEY missing)' });
+    if (!geminiOk) {
+      return res.status(503).json({ error: 'AI service not configured (GEMINI_API_KEY missing)' });
     }
-  const result = await generateJSON(prompt, { timeoutMs: 20000 });
+    const result = await generateStrictJSON(prompt, { timeoutMs: 20000 });
     if (!result.ok) {
-      throw new Error(result.error || 'DeepSeek generation failed');
+      throw new Error(result.error || 'Gemini generation failed');
     }
-    const text = (result.text || '').replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
+    const text = (result.text || '').trim();
     try {
-      const analysisData = JSON.parse(text);
+      const analysisData = parseJsonRobust(text);
       return res.json(analysisData);
     } catch (error) {
       // If parsing fails, provide a structured response

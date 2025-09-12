@@ -17,7 +17,7 @@ if (process.env.CLOUDINARY_URL && !process.env.CLOUDINARY_URL.trim().startsWith(
 // Verify environment variables are loaded
 console.log('🔍 Environment Check:');
 console.log('MONGO_URI:', process.env.MONGO_URI ? '✅ Configured' : '❌ Missing');
-console.log('DEEPSEEK_API_KEY:', process.env.DEEPSEEK_API_KEY ? '✅ Configured' : '❌ Missing');
+console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? '✅ Configured' : '❌ Missing');
 console.log('CLOUDINARY_CLOUD_NAME:', process.env.CLOUDINARY_CLOUD_NAME ? '✅ Configured' : '❌ Missing');
 
 // Import routes

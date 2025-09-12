@@ -25,6 +25,7 @@ function generateTerminalLog({ resume_source, job_title, job_id, steps = [], res
         ms = 300 + Math.floor(Math.random() * 1200);
         break;
       case 'call_deepseek':
+      case 'call_gemini':
       case 'call_llm':
         ms = 500 + Math.floor(Math.random() * 2500);
         break;

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,6 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Briefcase, 
   Sparkles, 
@@ -31,7 +35,22 @@ import {
   CheckSquare,
   AlertCircle,
   Brain,
-  Info
+  Info,
+  Save,
+  Send,
+  Eye,
+  Heart,
+  Share2,
+  BookmarkPlus,
+  Users,
+  TrendingUp,
+  ChevronRight,
+  ChevronLeft,
+  Download,
+  ExternalLink,
+  Shield,
+  Zap,
+  GraduationCap
 } from 'lucide-react';
 import { useSearch } from '@/hooks/useSearch';
 import { useAuthContext } from '@/context/AuthContext';
@@ -81,7 +100,6 @@ const JobApplication = () => {
   const navigate = useNavigate();
   const { searchResults } = useSearch();
   const authContext = useAuthContext();
-  
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitted, setSubmitted] = useState(false);
@@ -93,6 +111,11 @@ const JobApplication = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formProgress, setFormProgress] = useState(0);
   const [showAIMatching, setShowAIMatching] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [applicationMode, setApplicationMode] = useState<'quick' | 'detailed'>('detailed');
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Enhanced Application form state
   const [formData, setFormData] = useState({
@@ -110,15 +133,24 @@ const JobApplication = () => {
     skills: '',
     expectedSalary: '',
     startDate: '',
+    education: '',
+    availability: 'immediate',
+    workType: 'full-time',
+    relocate: false,
+    referral: '',
+    motivation: '',
+    achievements: '',
+    languagesSpoken: '',
+    certifications: '',
   });
 
   const { userData, isAuthenticated, loading: authLoading, isTokenValid } = authContext || {};
-  
+
   // Utility function to validate ObjectId format
   const isValidObjectId = (id: string) => {
     return id && /^[0-9a-fA-F]{24}$/.test(id);
   };
-  
+
   // Function to generate random User ID
   const generateUserId = () => {
     const timestamp = Date.now().toString(36);
@@ -141,7 +173,6 @@ const JobApplication = () => {
         setError(null);
         const all = await searchResults('');
         const found = all.find((j: Job) => j.id === id || j._id === id);
-        
         if (!found) {
           setError('Job not found');
         } else {
@@ -162,7 +193,6 @@ const JobApplication = () => {
         setLoading(false);
       }
     };
-
     if (id && isAuthenticated) {
       fetchJob();
     } else if (id && !isAuthenticated && !authLoading) {
@@ -251,30 +281,25 @@ const JobApplication = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
-    
     if (!token) {
       toast({ title: 'Authentication required', description: 'Please log in to apply for this job.', variant: 'destructive' });
       navigate('/login');
       return;
     }
-    
     if (!isTokenValid || !isTokenValid(token)) {
       toast({ title: 'Session Expired', description: 'Please log in again to continue.', variant: 'destructive' });
       navigate('/login');
       return;
     }
-    
     if (!isLoggedIn) {
       toast({ title: 'You must be logged in to apply for a job.', variant: 'destructive' });
       navigate('/login');
       return;
     }
-    
     if (!job) {
       toast({ title: 'Job not found', variant: 'destructive' });
       return;
     }
-
     if (!formData.userId || formData.userId.trim() === '') {
       toast({ title: 'User ID Required', description: 'Please generate a User ID before submitting.', variant: 'destructive' });
       return;
@@ -283,8 +308,8 @@ const JobApplication = () => {
     const jobId = job.id || job._id || job.jobId;
     const companyId = job.companyId || job.company_id;
     const companyName = job.company || 'Unknown Company';
-    
     let applicationResumeUrl: string | undefined = undefined;
+
     if (formData.resume && formData.resume instanceof File) {
       try {
         const fd = new FormData();
@@ -334,7 +359,7 @@ const JobApplication = () => {
       appliedAt: new Date().toISOString(),
       resume: applicationResumeUrl,
     };
-    
+
     try {
       const res = await fetch('/api/applications/apply', {
         method: 'POST',
@@ -344,13 +369,12 @@ const JobApplication = () => {
         },
         body: JSON.stringify(applicationData),
       });
-      
       if (res.status === 201) {
         toast({ title: 'Successfully applied for this job!', variant: 'default' });
         setSubmitted(true);
         setShowConfetti(true);
         setSubmittedData(applicationData);
-        setTimeout(() => setShowConfetti(false), 2500);
+        setTimeout(() => setShowConfetti(false), 3000);
       } else if (res.status === 409) {
         toast({ title: 'Already Applied', description: 'You have already applied to this job.', variant: 'default' });
       } else if (res.status === 401) {
@@ -406,12 +430,14 @@ const JobApplication = () => {
             <div className="flex gap-2 justify-center">
               <Button 
                 onClick={() => window.location.reload()}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 px-8 py-3"
               >
                 Try Again
               </Button>
               <Link to="/jobs">
-                <Button variant="outline">Browse Jobs</Button>
+                <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3">
+                  Browse Jobs
+                </Button>
               </Link>
             </div>
           </CardContent>
@@ -430,7 +456,7 @@ const JobApplication = () => {
           <CardContent>
             <p className="text-gray-600 mb-4">The job you're looking for doesn't exist or has been removed.</p>
             <Link to="/jobs">
-              <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
+              <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
                 Browse Jobs
               </Button>
             </Link>
@@ -442,43 +468,74 @@ const JobApplication = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
         {showConfetti && (
-          <div className="absolute inset-0 pointer-events-none z-10 animate-fade-in">
-            <div className="w-full h-full flex flex-wrap items-center justify-center opacity-80">
-              {[...Array(30)].map((_, i) => (
-                <span key={i} className={`absolute text-3xl select-none animate-bounce-slow`} style={{
+          <div className="absolute inset-0 pointer-events-none z-10">
+            {[...Array(60)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute text-2xl select-none animate-bounce-slow"
+                style={{
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
                   color: `hsl(${Math.random() * 360}, 80%, 60%)`,
-                  animationDelay: `${Math.random()}s`,
-                }}>🎉</span>
-              ))}
-            </div>
+                  animationDelay: `${Math.random() * 2}s`,
+                  transform: `rotate(${Math.random() * 360}deg)`,
+                  fontSize: `${16 + Math.random() * 12}px`,
+                }}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1.2 }}
+                exit={{ opacity: 0, scale: 0 }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+              >
+                🎉
+              </motion.div>
+            ))}
           </div>
         )}
-        <Card className="max-w-md mx-auto shadow-xl z-20 animate-fade-in">
-          <CardHeader>
-            <div className="flex flex-col items-center">
-              <Sparkles className="h-12 w-12 text-green-500 mb-2 animate-bounce" />
-              <CardTitle className="text-2xl font-bold text-green-700">Application Submitted!</CardTitle>
+
+        <Card className="max-w-md mx-auto shadow-2xl z-20 backdrop-blur-xl bg-white/90 border border-white/20 animate-fade-in">
+          <CardHeader className="text-center pb-8">
+            <div className="relative inline-flex items-center justify-center p-4 mb-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full shadow-lg">
+              <Sparkles className="h-10 w-10 text-white animate-pulse" />
             </div>
+            <CardTitle className="text-3xl font-bold text-gray-900 mb-2">Application Submitted!</CardTitle>
+            <p className="text-lg text-gray-600">Congratulations, <span className="font-semibold text-gray-800">{formData.fullName}</span></p>
           </CardHeader>
-          <CardContent className="text-center">
-            <p className="mb-4 text-lg">Thank you for applying to <b>{job.title}</b> at <b>{job.company}</b>.</p>
-            <div className="mb-4 text-left text-sm bg-gray-50 p-4 rounded-lg shadow-inner">
-              <div className="font-semibold mb-2">Your Application Details:</div>
-              <ul className="space-y-1">
-                {submittedData && Object.entries(submittedData).map(([key, value]) => (
-                  <li key={key}><b>{key}:</b> {value as string}</li>
-                ))}
+
+          <CardContent className="space-y-6 text-center">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100/50 backdrop-blur-sm">
+              <p className="text-gray-700 mb-2"><strong>{job.title}</strong> at <strong>{job.company}</strong></p>
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                <Calendar className="h-4 w-4" />
+                <span>{new Date().toLocaleDateString()}</span>
+              </div>
+            </div>
+
+            <div className="text-left bg-gray-50 rounded-xl p-5 border border-gray-100/50">
+              <h4 className="font-semibold text-gray-800 mb-3">Your Application Summary:</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li><strong>Resume:</strong> {resumeName || currentResume?.fileName || 'Uploaded'}</li>
+                <li><strong>Email:</strong> {formData.email}</li>
+                <li><strong>Position:</strong> {formData.currentPosition || 'N/A'}</li>
+                <li><strong>Experience:</strong> {formData.experience} years</li>
               </ul>
             </div>
-            <Link to="/user/applications">
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
-                View My Applications
-              </Button>
-            </Link>
+
+            <Button 
+              asChild
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-4 rounded-2xl shadow-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-lg"
+            >
+              <Link to="/user/applications">View My Applications</Link>
+            </Button>
+
+            <Button 
+              variant="ghost"
+              className="text-gray-500 hover:text-gray-700 text-sm font-medium border-t border-gray-200 pt-4"
+              onClick={() => window.open(`mailto:${job.postedBy || 'careers@company.com'}?subject=Application%20for%20${encodeURIComponent(job.title)}&body=Dear%20Hiring%20Team,%0A%0AI%20have%20applied%20for%20the%20${job.title}%20role%20at%20${job.company}.%0A%0ABest%20regards,%0A${formData.fullName}`)}
+            >
+              <Mail className="h-4 w-4 mr-1" /> Contact Hiring Team
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -486,456 +543,556 @@ const JobApplication = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="max-w-7xl mx-auto relative">
-        <button
-          onClick={() => setShowAIMatching(true)}
-          className="fixed bottom-8 right-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 z-50 group"
-        >
-          <Brain className="h-5 w-5" />
-          <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out whitespace-nowrap">
-            AI Resume Match
-          </span>
-        </button>
-        
-        <div className="p-4 border-b bg-white/80 backdrop-blur-sm">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate(-1)} 
-            className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-all duration-300"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Jobs
-          </Button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
+      {/* Cosmic Background Particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(24)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-blue-300 rounded-full opacity-20"
+            initial={{
+              x: Math.random() * 100,
+              y: Math.random() * 100,
+              scale: 0.3,
+            }}
+            animate={{
+              x: [0, 50, 0],
+              y: [0, -30, 0],
+              scale: [0.3, 1, 0.3],
+            }}
+            transition={{
+              duration: 8 + Math.random() * 6,
+              repeat: Infinity,
+              delay: i * 0.3,
+            }}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Glowing Light Overlay */}
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse delay-1000"></div>
+
+      {/* Premium AI Button — Floating Gem */}
+      <button
+        onClick={() => setShowAIMatching(true)}
+        className="fixed bottom-8 right-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-5 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-500 z-50 group cursor-pointer"
+        style={{
+          boxShadow:
+            '0 0 30px rgba(59, 130, 246, 0.3), 0 0 60px rgba(139, 92, 246, 0.2)',
+        }}
+      >
+        <div className="relative">
+          <Brain className="h-6 w-6 text-white" />
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-300 rounded-full animate-ping"></div>
         </div>
-        
-        <div className="flex h-[calc(100vh-120px)]">
-          <div className="w-1/3 border-r bg-white/80 backdrop-blur-sm">
-            <div className="p-6 h-full overflow-y-auto">
-              <Card className="shadow-xl border-0 bg-white/90 animate-fade-in">
-                <CardHeader className="pb-4">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                      <Briefcase className="h-6 w-6" />
+        <span className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-black/80 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+          AI Resume Match
+        </span>
+      </button>
+
+      {/* Header Navigation */}
+      <div className="p-6 border-b bg-white/80 backdrop-blur-sm sticky top-0 z-40">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate(-1)} 
+          className="mb-4 flex items-center gap-3 text-gray-600 hover:text-gray-900 transition-all duration-300 px-4 py-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          Back to Jobs
+        </Button>
+      </div>
+
+      <div className="flex h-[calc(100vh-120px)]">
+        {/* Left Panel — Job Details */}
+        <div className="w-1/3 border-r bg-white/80 backdrop-blur-sm p-6 h-full overflow-y-auto">
+          <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-xl animate-fade-in">
+            <CardHeader className="pb-6">
+              <div className="flex items-start gap-5">
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/20 to-purple-600/20 border border-blue-200/30">
+                  <Briefcase className="h-8 w-8 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <CardTitle className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-blue-700 bg-clip-text text-transparent mb-2">
+                    {job.title}
+                  </CardTitle>
+                  <div className="flex items-center gap-3 text-gray-700 mb-2">
+                    <Building className="h-5 w-5" />
+                    <span className="font-semibold text-gray-900">{job.company}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-gray-600 mb-2">
+                    <MapPin className="h-5 w-5" />
+                    <span>{job.location || 'Remote'}</span>
+                  </div>
+                  {job.salary && (
+                    <div className="flex items-center gap-3 text-gray-600 mb-2">
+                      <DollarSign className="h-5 w-5" />
+                      <span className="font-medium">{job.salary}</span>
                     </div>
-                    <div className="flex-1">
-                      <CardTitle className="text-xl font-bold text-gray-900 mb-2">{job.title}</CardTitle>
-                      <div className="flex items-center gap-2 text-gray-600 mb-2">
-                        <Building className="h-4 w-4" />
-                        <span className="font-medium">{job.company}</span>
+                  )}
+                  {job.type && (
+                    <Badge 
+                      variant="secondary" 
+                      className="w-fit bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200/50 font-medium"
+                    >
+                      {job.type}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+              <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-5 border border-gray-100/50">
+                <h4 className="font-semibold text-gray-900 mb-3 text-lg">Job Description</h4>
+                <p className="text-gray-700 leading-relaxed text-sm">
+                  {job.description || 'No description available.'}
+                </p>
+              </div>
+
+              <Separator className="bg-gray-200/30" />
+
+              <div className="bg-gradient-to-r from-gray-50 to-indigo-50 rounded-xl p-5 border border-gray-100/50">
+                <h4 className="font-semibold text-gray-900 mb-3 text-lg">Requirements</h4>
+                <p className="text-gray-700 leading-relaxed text-sm">
+                  {job.requirements || 'No requirements specified.'}
+                </p>
+              </div>
+
+              <Separator className="bg-gray-200/30" />
+
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  <span>Posted today</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  <span>237 applicants</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Panel — Application Form */}
+        <div className="w-2/3 overflow-y-auto p-6">
+          <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-xl hover:shadow-3xl transition-all duration-500 animate-fade-in">
+            <CardHeader className="pb-8">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                    Apply Now
+                  </CardTitle>
+                  <p className="text-gray-600 text-lg leading-relaxed">
+                    Complete your application for <span className="font-bold text-gray-900">{job.title}</span> at <span className="font-bold text-gray-900">{job.company}</span>
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-gray-500 mb-1">Progress</div>
+                  <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    {formProgress}%
+                  </div>
+                </div>
+              </div>
+
+              {/* Animated Progress Bar */}
+              <div className="mt-6 w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full shadow-lg transition-all duration-1000 ease-out"
+                  style={{ width: `${formProgress}%` }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-300 to-purple-300 opacity-30 animate-pulse"></div>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-8">
+              {!isLoggedIn ? (
+                <div className="text-center py-16">
+                  <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-2">Authentication Required</h3>
+                  <p className="text-gray-600 mb-6">You must be logged in to apply for this position.</p>
+                  <Link to="/login">
+                    <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-4 rounded-2xl font-semibold text-lg shadow-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
+                      Login to Apply
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  {/* Personal Info Section */}
+                  <div className="space-y-6 bg-gradient-to-r from-gray-50 to-blue-50 p-8 rounded-3xl border border-gray-100/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg">
+                        <User className="h-6 w-6" />
                       </div>
-                      <div className="flex items-center gap-2 text-gray-500 mb-2">
-                        <MapPin className="h-4 w-4" />
-                        <span>{job.location}</span>
-                      </div>
-                      {job.salary && (
-                        <div className="flex items-center gap-2 text-gray-500 mb-2">
-                          <DollarSign className="h-4 w-4" />
-                          <span>{job.salary}</span>
-                        </div>
-                      )}
-                      {job.type && (
-                        <Badge variant="secondary" className="w-fit bg-blue-100 text-blue-700">
-                          {job.type}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Job Description</h4>
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                      {job.description || 'No description available.'}
-                    </p>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Requirements</h4>
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                      {job.requirements || 'No requirements specified.'}
-                    </p>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      <span>Posted recently</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <User className="h-4 w-4" />
-                      <span>Multiple applicants</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          <div className="w-2/3 overflow-y-auto">
-            <div className="p-6">
-              <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 animate-fade-in">
-                <CardHeader className="pb-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                        Application Form
-                      </CardTitle>
-                      <p className="text-gray-600">Complete your application for <span className="font-medium text-gray-800">{job.title}</span> position</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-500 mb-1">Form Progress</div>
-                      <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        {formProgress}%
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900">Personal Information</h3>
+                        <p className="text-gray-600">Let us know who you are</p>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="w-full bg-gray-200 rounded-full h-2 mt-4">
-                    <div 
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500" 
-                      style={{ width: `${formProgress}%` }}
-                    />
-                  </div>
-                </CardHeader>
 
-                <CardContent>
-                  {!isLoggedIn ? (
-                    <div className="text-center py-12">
-                      <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Authentication Required</h3>
-                      <p className="text-gray-600 mb-6">You must be logged in to apply for this position.</p>
-                      <Link to="/login">
-                        <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
-                          Login to Apply
-                        </Button>
-                      </Link>
-                    </div>
-                  ) : (
-                    <form onSubmit={handleSubmit} className="space-y-8">
-                      <div className="space-y-6 bg-white/50 p-6 rounded-xl backdrop-blur-sm">
-                        <div className="flex items-center gap-3 border-b border-gray-200 pb-4">
-                          <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600">
-                            <User className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
-                            <p className="text-sm text-gray-500">Basic details for your application</p>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <Label htmlFor="userId" className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                              User ID 
-                              <span className="text-red-500">*</span>
-                              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                                Required
-                              </Badge>
-                            </Label>
-                            <div className="flex gap-2">
-                              <div className="relative flex-1">
-                                <Input
-                                  id="userId"
-                                  name="userId"
-                                  value={formData.userId}
-                                  onChange={handleInputChange}
-                                  required
-                                  className="h-11 pl-10 pr-4 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                                  placeholder="User ID will be auto-generated"
-                                  readOnly
-                                />
-                                <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                                  <FileText className="h-4 w-4 text-gray-400" />
-                                </div>
-                              </div>
-                              <Button
-                                type="button"
-                                onClick={generateUserId}
-                                className="h-11 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg"
-                              >
-                                <Sparkles className="h-4 w-4 mr-2" />
-                                Generate ID
-                              </Button>
-                            </div>
-                            <p className="text-xs text-gray-500 flex items-center gap-1">
-                              <Info className="h-3 w-3" />
-                              Unique identifier for tracking your application
-                            </p>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">Full Name</Label>
-                            <Input
-                              id="fullName"
-                              name="fullName"
-                              value={formData.fullName}
-                              onChange={handleInputChange}
-                              required
-                              className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                              placeholder="Enter your full name"
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email Address</Label>
-                            <Input
-                              id="email"
-                              name="email"
-                              type="email"
-                              value={formData.email}
-                              onChange={handleInputChange}
-                              required
-                              className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                              placeholder="Enter your email"
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="phone" className="text-sm font-medium text-gray-700">Phone Number</Label>
-                            <Input
-                              id="phone"
-                              name="phone"
-                              type="tel"
-                              value={formData.phone}
-                              onChange={handleInputChange}
-                              required
-                              className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                              placeholder="Enter your phone number"
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="startDate" className="text-sm font-medium text-gray-700">Available Start Date</Label>
-                            <Input
-                              id="startDate"
-                              name="startDate"
-                              type="date"
-                              value={formData.startDate}
-                              onChange={handleInputChange}
-                              className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <Separator />
-
-                      <div className="space-y-6">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-green-100">
-                            <Briefcase className="h-5 w-5 text-green-600" />
-                          </div>
-                          <h3 className="text-lg font-semibold text-gray-900">Professional Information</h3>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <Label htmlFor="currentCompany" className="text-sm font-medium text-gray-700">Current Company</Label>
-                            <Input
-                              id="currentCompany"
-                              name="currentCompany"
-                              value={formData.currentCompany}
-                              onChange={handleInputChange}
-                              className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                              placeholder="Your current employer"
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="currentPosition" className="text-sm font-medium text-gray-700">Current Position</Label>
-                            <Input
-                              id="currentPosition"
-                              name="currentPosition"
-                              value={formData.currentPosition}
-                              onChange={handleInputChange}
-                              className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                              placeholder="Your current role"
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="experience" className="text-sm font-medium text-gray-700">Years of Experience</Label>
-                            <Input
-                              id="experience"
-                              name="experience"
-                              type="number"
-                              value={formData.experience}
-                              onChange={handleInputChange}
-                              className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                              placeholder="Number of years"
-                              min="0"
-                              max="50"
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="expectedSalary" className="text-sm font-medium text-gray-700">Expected Salary</Label>
-                            <Input
-                              id="expectedSalary"
-                              name="expectedSalary"
-                              type="number"
-                              value={formData.expectedSalary}
-                              onChange={handleInputChange}
-                              className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                              placeholder="Annual salary expectation"
-                              min="0"
-                            />
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="skills" className="text-sm font-medium text-gray-700">Skills & Technologies</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-4">
+                        <Label htmlFor="userId" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          User ID
+                          <span className="text-red-500">*</span>
+                          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200/50">
+                            Auto-generated
+                          </Badge>
+                        </Label>
+                        <div className="relative">
                           <Input
-                            id="skills"
-                            name="skills"
-                            value={formData.skills}
-                            onChange={handleInputChange}
-                            className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                            placeholder="e.g., React, TypeScript, Node.js, MongoDB"
-                          />
-                          <p className="text-xs text-gray-500">Separate skills with commas</p>
-                        </div>
-                      </div>
-
-                      <Separator />
-
-                      <div className="space-y-6">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-purple-100">
-                            <Globe className="h-5 w-5 text-purple-600" />
-                          </div>
-                          <h3 className="text-lg font-semibold text-gray-900">Online Presence</h3>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <Label htmlFor="linkedIn" className="text-sm font-medium text-gray-700">LinkedIn Profile</Label>
-                            <Input
-                              id="linkedIn"
-                              name="linkedIn"
-                              value={formData.linkedIn}
-                              onChange={handleInputChange}
-                              type="url"
-                              className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                              placeholder="https://linkedin.com/in/yourprofile"
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="portfolio" className="text-sm font-medium text-gray-700">Portfolio URL</Label>
-                            <Input
-                              id="portfolio"
-                              name="portfolio"
-                              value={formData.portfolio}
-                              onChange={handleInputChange}
-                              type="url"
-                              className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                              placeholder="https://yourportfolio.com"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <Separator />
-
-                      <div className="space-y-6">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-orange-100">
-                            <FileText className="h-5 w-5 text-orange-600" />
-                          </div>
-                          <h3 className="text-lg font-semibold text-gray-900">Cover Letter</h3>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="coverLetter" className="text-sm font-medium text-gray-700">
-                            Why are you interested in this position?
-                          </Label>
-                          <Textarea
-                            id="coverLetter"
-                            name="coverLetter"
-                            value={formData.coverLetter}
+                            id="userId"
+                            name="userId"
+                            value={formData.userId}
                             onChange={handleInputChange}
                             required
-                            rows={6}
-                            className="resize-none border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300"
-                            placeholder="Tell us why you're a great fit for this role, your relevant experience, and what excites you about this opportunity..."
+                            className="h-14 pl-12 pr-6 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                            placeholder="Auto-generated"
+                            readOnly
                           />
-                          <p className="text-xs text-gray-500">Share your motivation and relevant experience</p>
-                        </div>
-                      </div>
-
-                      <Separator />
-
-                      <div className="space-y-6">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-indigo-100">
-                            <UploadCloud className="h-5 w-5 text-indigo-600" />
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                            <FileText className="h-5 w-5" />
                           </div>
-                          <h3 className="text-lg font-semibold text-gray-900">Resume Upload</h3>
                         </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="resume" className="text-sm font-medium text-gray-700">Upload Resume</Label>
-                          <Input
-                            id="resume"
-                            name="resume"
-                            type="file"
-                            accept=".pdf,.doc,.docx"
-                            onChange={handleFileChange}
-                            className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                          />
-                          {resumeName && (
-                            <div className="flex items-center gap-2 text-green-700 text-sm">
-                              <CheckCircle className="h-4 w-4" />
-                              {resumeName}
-                            </div>
-                          )}
-                          {!resumeName && currentResume?.fileName && (
-                            <div className="flex items-center gap-2 text-blue-700 text-sm">
-                              <Info className="h-4 w-4" />
-                              Using saved resume: <button type="button" onClick={() => currentResume?.url && window.open(currentResume.url, '_blank')} className="underline">{currentResume.fileName}</button>
-                            </div>
-                          )}
-                          <p className="text-xs text-gray-500">Accepted formats: PDF, DOC, DOCX (Max 5MB)</p>
-                          <p className="text-xs text-red-600">Resume is required to apply.</p>
-                        </div>
-                      </div>
-                      
-                      <div className="pt-4">
-                        <Button 
+                        <Button
                           type="button"
-                          onClick={() => setShowAIMatching(true)}
-                          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300"
+                          onClick={generateUserId}
+                          className="h-12 px-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl text-sm font-medium"
                         >
-                          <Brain className="h-5 w-5 mr-2" />
-                          Analyze Resume Match
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          Regenerate ID
                         </Button>
                       </div>
 
-                      <div className="pt-4">
-                        <Button 
-                          type="submit" 
-                          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-4 rounded-xl shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-lg"
-                        >
-                          <CheckSquare className="h-5 w-5 mr-2" />
-                          Submit Application
-                        </Button>
+                      <div className="space-y-4">
+                        <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">Full Name</Label>
+                        <Input
+                          id="fullName"
+                          name="fullName"
+                          value={formData.fullName}
+                          onChange={handleInputChange}
+                          required
+                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          placeholder="Enter your full name"
+                        />
                       </div>
-                    </form>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+
+                      <div className="space-y-4">
+                        <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email Address</Label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          required
+                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          placeholder="you@example.com"
+                        />
+                      </div>
+
+                      <div className="space-y-4">
+                        <Label htmlFor="phone" className="text-sm font-medium text-gray-700">Phone Number</Label>
+                        <Input
+                          id="phone"
+                          name="phone"
+                          type="tel"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          required
+                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          placeholder="+1 (555) 123-4567"
+                        />
+                      </div>
+
+                      <div className="space-y-4">
+                        <Label htmlFor="startDate" className="text-sm font-medium text-gray-700">Available Start Date</Label>
+                        <Input
+                          id="startDate"
+                          name="startDate"
+                          type="date"
+                          value={formData.startDate}
+                          onChange={handleInputChange}
+                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Professional Info */}
+                  <div className="space-y-6 bg-gradient-to-r from-gray-50 to-indigo-50 p-8 rounded-3xl border border-gray-100/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="p-4 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg">
+                        <Briefcase className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900">Professional Experience</h3>
+                        <p className="text-gray-600">Showcase your career journey</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-4">
+                        <Label htmlFor="currentCompany" className="text-sm font-medium text-gray-700">Current Company</Label>
+                        <Input
+                          id="currentCompany"
+                          name="currentCompany"
+                          value={formData.currentCompany}
+                          onChange={handleInputChange}
+                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          placeholder="e.g., TechCorp Inc."
+                        />
+                      </div>
+
+                      <div className="space-y-4">
+                        <Label htmlFor="currentPosition" className="text-sm font-medium text-gray-700">Current Position</Label>
+                        <Input
+                          id="currentPosition"
+                          name="currentPosition"
+                          value={formData.currentPosition}
+                          onChange={handleInputChange}
+                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          placeholder="e.g., Senior Frontend Developer"
+                        />
+                      </div>
+
+                      <div className="space-y-4">
+                        <Label htmlFor="experience" className="text-sm font-medium text-gray-700">Years of Experience</Label>
+                        <Input
+                          id="experience"
+                          name="experience"
+                          type="number"
+                          value={formData.experience}
+                          onChange={handleInputChange}
+                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          placeholder="e.g., 3"
+                          min="0"
+                          max="50"
+                        />
+                      </div>
+
+                      <div className="space-y-4">
+                        <Label htmlFor="expectedSalary" className="text-sm font-medium text-gray-700">Expected Salary (Annual)</Label>
+                        <Input
+                          id="expectedSalary"
+                          name="expectedSalary"
+                          type="number"
+                          value={formData.expectedSalary}
+                          onChange={handleInputChange}
+                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          placeholder="$80,000"
+                          min="0"
+                        />
+                      </div>
+
+                      <div className="space-y-4 md:col-span-2">
+                        <Label htmlFor="skills" className="text-sm font-medium text-gray-700">Key Skills & Technologies</Label>
+                        <Input
+                          id="skills"
+                          name="skills"
+                          value={formData.skills}
+                          onChange={handleInputChange}
+                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          placeholder="React, TypeScript, Node.js, Tailwind CSS, Figma..."
+                        />
+                        <p className="text-xs text-gray-500">Separate with commas</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Online Presence */}
+                  <div className="space-y-6 bg-gradient-to-r from-gray-50 to-purple-50 p-8 rounded-3xl border border-gray-100/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-lg">
+                        <Globe className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900">Online Presence</h3>
+                        <p className="text-gray-600">Connect your professional profiles</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-4">
+                        <Label htmlFor="linkedIn" className="text-sm font-medium text-gray-700">LinkedIn Profile</Label>
+                        <Input
+                          id="linkedIn"
+                          name="linkedIn"
+                          value={formData.linkedIn}
+                          onChange={handleInputChange}
+                          type="url"
+                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          placeholder="https://linkedin.com/in/yourname"
+                        />
+                      </div>
+
+                      <div className="space-y-4">
+                        <Label htmlFor="portfolio" className="text-sm font-medium text-gray-700">Portfolio / GitHub</Label>
+                        <Input
+                          id="portfolio"
+                          name="portfolio"
+                          value={formData.portfolio}
+                          onChange={handleInputChange}
+                          type="url"
+                          className="h-14 pl-4 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm"
+                          placeholder="https://yourportfolio.com"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cover Letter */}
+                  <div className="space-y-6 bg-gradient-to-r from-gray-50 to-orange-50 p-8 rounded-3xl border border-gray-100/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="p-4 rounded-2xl bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg">
+                        <FileText className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900">Cover Letter</h3>
+                        <p className="text-gray-600">Tell us why you’re perfect for this role</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label htmlFor="coverLetter" className="text-sm font-medium text-gray-700">
+                        Why are you interested in this position?
+                      </Label>
+                      <Textarea
+                        id="coverLetter"
+                        name="coverLetter"
+                        value={formData.coverLetter}
+                        onChange={handleInputChange}
+                        required
+                        rows={8}
+                        className="w-full border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 shadow-sm p-6 rounded-xl resize-none"
+                        placeholder="Dear Hiring Team,
+
+I'm deeply inspired by [Company]'s mission to innovate in [industry]. With my 4+ years building scalable React applications and mentoring junior developers, I’m excited to bring my expertise in performance optimization and user-centric design to your team...
+
+Sincerely,
+[Your Name]"
+                      />
+                      <p className="text-xs text-gray-500">Be authentic. Tell your story. Don’t just list qualifications.</p>
+                    </div>
+                  </div>
+
+                  {/* Resume Upload */}
+                  <div className="space-y-6 bg-gradient-to-r from-gray-50 to-indigo-50 p-8 rounded-3xl border border-gray-100/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-blue-600 text-white shadow-lg">
+                        <UploadCloud className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900">Resume Upload</h3>
+                        <p className="text-gray-600">Your most important document</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <Label htmlFor="resume" className="text-sm font-medium text-gray-700">
+                        Upload Your Resume (PDF/DOCX)
+                      </Label>
+                      <Input
+                        id="resume"
+                        name="resume"
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="resume"
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-400 transition-colors duration-300 bg-white/60 backdrop-blur-sm hover:bg-white/80"
+                      >
+                        <div className="text-center">
+                          {resumeName ? (
+                            <div className="flex items-center gap-3 text-green-600">
+                              <CheckCircle className="h-5 w-5" />
+                              <span className="font-medium">{resumeName}</span>
+                            </div>
+                          ) : currentResume?.fileName ? (
+                            <div className="flex items-center gap-3 text-blue-600">
+                              <Info className="h-5 w-5" />
+                              <span>Using saved: {currentResume.fileName}</span>
+                              <button
+                                type="button"
+                                onClick={() => currentResume?.url && window.open(currentResume.url, '_blank')}
+                                className="text-xs underline"
+                              >
+                                View
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <UploadCloud className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                              <span className="text-gray-500">Drag & drop your resume here, or click to browse</span>
+                              <p className="text-xs text-gray-400 mt-2">Max size: 5MB • PDF, DOC, DOCX</p>
+                            </>
+                          )}
+                        </div>
+                      </label>
+                      <p className="text-xs text-red-600 font-medium">Resume is required to apply.</p>
+                    </div>
+                  </div>
+
+                  {/* AI Match Button — Premium Feature */}
+                  <div className="pt-6 text-center">
+                    <Button
+                      type="button"
+                      onClick={() => setShowAIMatching(true)}
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold py-5 rounded-2xl shadow-2xl hover:from-green-700 hover:to-emerald-700 transition-all duration-500 text-lg relative overflow-hidden group"
+                      style={{
+                        boxShadow:
+                          '0 10px 25px rgba(16, 185, 129, 0.2), 0 0 30px rgba(16, 185, 129, 0.1)',
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-green-400/30 to-emerald-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                      <Brain className="h-6 w-6 mr-3 text-white" />
+                      <span>✨ AI-Powered Resume Match Analysis</span>
+                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-300 rounded-full animate-ping"></div>
+                    </Button>
+                  </div>
+
+                  {/* Submit Button — Grand Finale */}
+                  <div className="pt-6 text-center">
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-6 rounded-2xl shadow-3xl hover:from-blue-700 hover:to-purple-700 transition-all duration-500 text-xl relative overflow-hidden group"
+                      style={{
+                        boxShadow:
+                          '0 15px 35px rgba(59, 130, 246, 0.3), 0 0 40px rgba(139, 92, 246, 0.2)',
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-400/30 to-purple-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="h-6 w-6 mr-3 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <CheckSquare className="h-6 w-6 mr-3" />
+                          Submit My Application
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
 
+      {/* AI Resume Matching Modal — Ultra-Luxury Version */}
       {showAIMatching && userData && job && (() => {
         const uid = (userData as { _id?: string; id?: string })._id || (userData as { _id?: string; id?: string }).id || '';
         const jid = (job.id || job._id || job.jobId || '') as string;

@@ -1,4 +1,4 @@
-const { generateJSON, getDeepseekConfig } = require('./llmClient');
+const { generateStrictJSON, parseJsonRobust, isConfigured: isGeminiConfigured } = require('./geminiClient');
 
 function buildMatcherPrompt({ resumeText, jobTitle, jobDescription, jobRequirements, filesList }) {
   // Build a deterministic prompt that asks the model to return only JSON with the required fields
@@ -6,22 +6,19 @@ function buildMatcherPrompt({ resumeText, jobTitle, jobDescription, jobRequireme
 }
 
 async function analyzeResumeWithLLM(inputs, { timeoutMs = 25000 } = {}) {
-  const cfg = getDeepseekConfig();
-  if (!cfg.ok) return { ok: false, error: 'AI service not configured' };
+  if (!isGeminiConfigured()) return { ok: false, error: 'AI service not configured' };
 
   const prompt = buildMatcherPrompt(inputs);
-  const result = await generateJSON(prompt, { timeoutMs });
+  const result = await generateStrictJSON(prompt, { timeoutMs });
   if (!result.ok) return { ok: false, error: result.error || 'generation_failed' };
 
   // Try to extract JSON from response
   const raw = result.text || '';
-  const cleaned = raw.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
-  const jsonMatch = cleaned.match(/\{[\s\S]*\}$/);
   let parsed = null;
   try {
-    parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(cleaned);
+    parsed = parseJsonRobust(raw);
   } catch (err) {
-    return { ok: false, error: 'invalid_json', raw: cleaned };
+    return { ok: false, error: 'invalid_json', raw };
   }
 
   return { ok: true, data: parsed };

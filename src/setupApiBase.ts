@@ -15,7 +15,7 @@ function prependBase(url: string) {
   return url;
 }
 
-// Patch global fetch
+// Patch global fetch with better error handling
 const _fetch = window.fetch;
 window.fetch = function(input: RequestInfo, init?: RequestInit) {
   try {
@@ -25,7 +25,17 @@ window.fetch = function(input: RequestInfo, init?: RequestInit) {
       const url = input.url;
       const newUrl = prependBase(url);
       if (newUrl !== url) {
-        input = new Request(newUrl, input);
+        input = new Request(newUrl, {
+          method: input.method,
+          headers: input.headers,
+          body: input.body,
+          mode: input.mode,
+          credentials: input.credentials,
+          cache: input.cache,
+          redirect: input.redirect,
+          referrer: input.referrer,
+          integrity: input.integrity,
+        });
       }
     }
   } catch (e) {
@@ -34,15 +44,29 @@ window.fetch = function(input: RequestInfo, init?: RequestInit) {
   return _fetch.call(this, input as RequestInfo, init);
 };
 
-// Patch axios if present
+// Patch axios if present with better error handling
 try {
   axios.interceptors.request.use((config) => {
     if (!config.url) return config;
     config.url = prependBase(config.url as string);
     return config;
+  }, (error) => {
+    console.error('Axios request interceptor error:', error);
+    return Promise.reject(error);
   });
+
+  axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 404) {
+        console.warn('API endpoint not found:', error.config?.url);
+      }
+      return Promise.reject(error);
+    }
+  );
 } catch (e) {
   // ignore if axios isn't available yet
+  console.warn('Axios not available for interceptor setup');
 }
 
 export { BASE };

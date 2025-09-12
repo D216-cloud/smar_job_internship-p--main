@@ -41,8 +41,8 @@ const smartQuestions = [
     icon: Code
   },
   {
-    category: "DeepSeek Integration",
-    question: "How is DeepSeek AI integrated into SmartHire?",
+    category: "Gemini Integration",
+    question: "How is Gemini AI integrated into SmartHire?",
     preview: "Learn about the AI-powered chat and analysis features",
     icon: Zap
   },
@@ -61,7 +61,7 @@ const projectKnowledge = {
 🎯 **Core Features**:
 - AI-powered resume analysis and job matching
 - Intelligent candidate screening for companies
-- Real-time chat assistance with DeepSeek AI
+- Real-time chat assistance with Gemini AI
 - Advanced profile management for both users and companies
 - Seamless application tracking and management
 
@@ -75,7 +75,7 @@ const projectKnowledge = {
   "How does the AI matching system work in SmartHire?": `SmartHire's AI matching system uses advanced algorithms to create perfect job-candidate connections:
 
 🤖 **AI Technology**:
-- DeepSeek-powered resume analysis
+- Gemini-powered resume analysis
 - Natural language processing for job descriptions
 - Machine learning algorithms for compatibility scoring
 - Semantic understanding of skills and requirements
@@ -126,7 +126,7 @@ const projectKnowledge = {
 - Cloudinary for efficient file storage and management
 
 🤖 **AI & Machine Learning**:
-- DeepSeek API integration for advanced language understanding
+- Gemini API integration for advanced language understanding
 - Custom AI scoring algorithms for job matching
 - PDF processing for resume text extraction
 - Natural language processing for content analysis
@@ -136,7 +136,7 @@ const projectKnowledge = {
 - PostCSS for advanced CSS processing
 - Git for version control and collaboration`,
 
-  "How is DeepSeek AI integrated into SmartHire?": `SmartHire leverages DeepSeek's powerful AI capabilities throughout the platform:
+  "How is Gemini AI integrated into SmartHire?": `SmartHire leverages Google's Gemini capabilities throughout the platform:
 
 🧠 **AI Chat Assistant**:
 - Real-time career guidance and job search support
@@ -204,7 +204,7 @@ const ChatApp: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: `Hello! I'm your SmartHire AI assistant powered by DeepSeek. I have comprehensive knowledge about the SmartHire platform and can help you with:
+      content: `Hello! I'm your SmartHire AI assistant powered by Gemini. I have comprehensive knowledge about the SmartHire platform and can help you with:
 
 • Job search strategies and career guidance
 • Resume optimization and analysis  
@@ -339,7 +339,7 @@ Feel free to ask me anything or use the quick questions below! 🚀`,
             </div>
             <div>
               <h1 className="text-lg font-semibold text-gray-900 dark:text-white">SmartHire AI</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Powered by DeepSeek • Always ready to help</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Powered by Gemini • Always ready to help</p>
             </div>
           </div>
           
@@ -550,7 +550,7 @@ Feel free to ask me anything or use the quick questions below! 🚀`,
             </Button>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
-            Press Enter to send • Shift+Enter for new line • Powered by DeepSeek
+            Press Enter to send • Shift+Enter for new line • Powered by Gemini
           </p>
         </div>
       </div>

@@ -23,7 +23,7 @@ const Chat: React.FC = () => {
               </h1>
             </div>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Chat with our AI assistant powered by DeepSeek. Get help with job search, 
+              Chat with our AI assistant powered by Gemini. Get help with job search, 
               career advice, resume tips, and more!
             </p>
           </div>

@@ -1,7 +1,7 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-pro';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
 
 let genAI = null;
 if (GEMINI_API_KEY) {
@@ -24,12 +24,21 @@ async function generateStrictJSON(prompt, opts = {}) {
   if (!isConfigured()) return { ok: false, text: '', error: 'gemini-not-configured' };
   try {
     const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), opts.timeoutMs || 15000);
-    const result = await model.generateContent({ contents: [{ role: 'user', parts: [{ text: prompt }] }], signal: controller.signal });
-    clearTimeout(timeout);
-    const response = await result.response;
-    return { ok: true, text: response.text() };
+    const TIMEOUT_MS = opts.timeoutMs || 15000;
+
+    const genPromise = (async () => {
+      // Use simple string prompt to avoid accidental extra fields
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return response.text();
+    })();
+
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('timeout')), TIMEOUT_MS);
+    });
+
+    const text = await Promise.race([genPromise, timeoutPromise]);
+    return { ok: true, text };
   } catch (err) {
     return { ok: false, text: '', error: err?.message || 'gemini-error' };
   }

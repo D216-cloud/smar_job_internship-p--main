@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { HealthCheck } from "./components/HealthCheck";
 import Home from "./pages/Home";
 import RoleSelection from "./pages/RoleSelection";
 import Jobs from "./pages/Jobs";
@@ -55,7 +57,7 @@ const AppContent = () => {
 
   return (
         <div className="min-h-screen flex flex-col">
-      {isPublicPage && <Header />}
+          {isPublicPage && <Header />}
           <main className="flex-1">
             <Routes>
               <Route path="/" element={<RoleSelection />} />
@@ -69,13 +71,10 @@ const AppContent = () => {
               } />
               <Route path="/userlogin" element={<Navigate to="/login" replace />} />
               <Route path="/companylogin" element={<Navigate to="/login" replace />} />
-              {/* Redirect legacy direct routes to user-scoped route so sidebar shows */}
-              <Route path="/job-application/:id" element={
-                <Navigate to={(window.location.pathname || '').replace('/job-application/', '/user/apply/')} replace />
-              } />
-              <Route path="/apply/:id" element={
-                <Navigate to={(window.location.pathname || '').replace('/apply/', '/user/apply/')} replace />
-              } />
+              
+              {/* Legacy routes - redirect to user scoped routes */}
+              <Route path="/job-application/:id" element={<Navigate to="/user/apply/:id" replace />} />
+              <Route path="/apply/:id" element={<Navigate to="/user/apply/:id" replace />} />
           <Route path="/user" element={<ProtectedRoute role="user"><UserLayout /></ProtectedRoute>}>
             <Route index element={<UserHome />} />
             <Route path="home" element={<UserHome />} />
@@ -118,17 +117,19 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-        <AppContent />
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
