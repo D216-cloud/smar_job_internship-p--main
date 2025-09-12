@@ -387,7 +387,7 @@ const Jobs = () => {
                           <Button variant="outline" size="sm" className="rounded-lg">
                           <Heart className="h-4 w-4" />
                         </Button>
-                          <Link to={`/apply/${job._id}`}>
+                          <Link to={`/user/apply/${job._id}`}>
                             <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg">
                               Apply Now
                               <ArrowRight className="h-4 w-4 ml-2" />

@@ -193,7 +193,7 @@ export const Internships = () => {
     if (!appliedInternships.includes(internshipId)) {
       setAppliedInternships([...appliedInternships, internshipId]);
     }
-    navigate(`/apply/${internshipId}`);
+    navigate(`/user/apply/${internshipId}`);
   };
 
   // Industry and benefits (same as before)

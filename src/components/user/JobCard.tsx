@@ -86,7 +86,7 @@ export const JobCard = ({ job }: JobCardProps) => {
             {job.description}
           </p>
           <div className="flex space-x-2 pt-4">
-            <Link to={`/apply/${job.id}`} className="flex-1">
+            <Link to={`/user/apply/${job.id}`} className="flex-1">
               <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
                 Apply Now
               </Button>

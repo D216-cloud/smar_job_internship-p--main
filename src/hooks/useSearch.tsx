@@ -7,16 +7,57 @@ export const useSearch = () => {
 
   // Fetch jobs and internships from backend
   const fetchItems = useCallback(async () => {
-    const [jobsRes, internshipsRes] = await Promise.all([
-      fetch('/api/jobs'),
-      fetch('/api/internships')
-    ]);
-    const jobs = await jobsRes.json();
-    const internships = await internshipsRes.json();
-    setAllItems([
-      ...jobs.map(j => ({ ...j, type: 'job' })),
-      ...internships.map(i => ({ ...i, type: 'internship' }))
-    ]);
+    try {
+      const [jobsRes, internshipsRes] = await Promise.all([
+        fetch('/api/jobs'),
+        fetch('/api/internships')
+      ]);
+      
+      if (jobsRes.ok && internshipsRes.ok) {
+        const jobs = await jobsRes.json();
+        const internships = await internshipsRes.json();
+        setAllItems([
+          ...jobs.map(j => ({ ...j, type: 'job' })),
+          ...internships.map(i => ({ ...i, type: 'internship' }))
+        ]);
+      } else {
+        throw new Error('API not available');
+      }
+    } catch (error) {
+      console.warn('API not available, using sample data:', error);
+      
+      // Fallback sample data for deployment demo
+      const sampleJobs = [
+        {
+          _id: 'demo-job-1',
+          id: 'demo-job-1',
+          title: 'Frontend Developer',
+          company: 'Tech Corp',
+          location: 'San Francisco, CA',
+          salary: '$80,000 - $120,000',
+          type: 'Full-time',
+          description: 'We are looking for a skilled Frontend Developer...',
+          requirements: ['React', 'TypeScript', 'CSS'],
+          postedDate: new Date().toISOString(),
+          postedBy: 'tech-corp'
+        },
+        {
+          _id: 'demo-job-2', 
+          id: 'demo-job-2',
+          title: 'Backend Developer',
+          company: 'StartupXYZ',
+          location: 'Remote',
+          salary: '$70,000 - $100,000',
+          type: 'Full-time',
+          description: 'Join our backend team...',
+          requirements: ['Node.js', 'MongoDB', 'Express'],
+          postedDate: new Date().toISOString(),
+          postedBy: 'startup-xyz'
+        }
+      ];
+      
+      setAllItems(sampleJobs.map(j => ({ ...j, type: 'job' })));
+    }
   }, []);
 
   const searchResults = useCallback(async (query) => {

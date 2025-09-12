@@ -169,7 +169,7 @@ export const UserJobs = () => {
     if (!appliedJobs.includes(jobId)) {
       setAppliedJobs([...appliedJobs, jobId]);
     }
-    navigate(`/apply/${jobId}`);
+    navigate(`/user/apply/${jobId}`);
   };
 
   // Share job

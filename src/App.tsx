@@ -7,6 +7,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { HealthCheck } from "./components/HealthCheck";
+import { LegacyJobApplicationRedirect, LegacyApplyRedirect } from "./components/LegacyRedirects";
 import Home from "./pages/Home";
 import RoleSelection from "./pages/RoleSelection";
 import Jobs from "./pages/Jobs";
@@ -73,8 +74,8 @@ const AppContent = () => {
               <Route path="/companylogin" element={<Navigate to="/login" replace />} />
               
               {/* Legacy routes - redirect to user scoped routes */}
-              <Route path="/job-application/:id" element={<Navigate to="/user/apply/:id" replace />} />
-              <Route path="/apply/:id" element={<Navigate to="/user/apply/:id" replace />} />
+              <Route path="/job-application/:id" element={<LegacyJobApplicationRedirect />} />
+              <Route path="/apply/:id" element={<LegacyApplyRedirect />} />
           <Route path="/user" element={<ProtectedRoute role="user"><UserLayout /></ProtectedRoute>}>
             <Route index element={<UserHome />} />
             <Route path="home" element={<UserHome />} />
